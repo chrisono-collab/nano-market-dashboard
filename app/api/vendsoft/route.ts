@@ -4,9 +4,10 @@ import { getDateRange, Preset } from '@/lib/dates'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const preset = (searchParams.get('preset') ?? 'today') as Preset
   const customFrom = searchParams.get('from') ?? undefined
   const customTo = searchParams.get('to') ?? undefined
+  // Explicit from/to (YYYY-MM-DD) always wins; otherwise fall back to a preset.
+  const preset = (searchParams.get('preset') ?? 'today') as Preset
 
   const range = getDateRange(preset, customFrom, customTo)
 

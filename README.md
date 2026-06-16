@@ -24,10 +24,12 @@ Open http://localhost:3000
 1. Push this repo to GitHub
 2. Go to vercel.com → New Project → Import your repo
 3. Add Environment Variables:
-   - `VENDSOFT_API_KEY` = C7WM7TI5DK3LW5DI
+   - `VENDSOFT_API_KEY` = (your VendSoft API key)
+   - `VENDSOFT_CUSTOMER_ID` = (your VendSoft customer ID)
    - `ANTHROPIC_API_KEY` = (your key from console.anthropic.com)
 4. Deploy
 
 ## VendSoft API
 Base URL: `https://secure.vendsoft.com/api/v2`
-Auth: `api_key` header
+Auth: HTTP Basic — API key as username, customer ID as password.
+Both `VENDSOFT_API_KEY` and `VENDSOFT_CUSTOMER_ID` are required.

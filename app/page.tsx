@@ -11,12 +11,25 @@ interface LocationSummary {
   totalTransactions: number
 }
 
+interface TransactionItem {
+  name: string
+  quantity: number
+  price: number
+}
+
+interface Transaction {
+  transactionId: string
+  time: string
+  items: TransactionItem[]
+  amount: number
+  card: boolean
+}
+
 const PRESETS: { label: string; value: Preset }[] = [
   { label: 'Today', value: 'today' },
   { label: 'Yesterday', value: 'yesterday' },
   { label: 'Last 7 Days', value: 'week' },
-  { label: 'Last 30 Days', value: 'month' },
-  { label: 'Custom', value: 'custom' },
+  { label: 'Month To Date', value: 'mtd' },
 ]
 
 function fmt$(n: number) {
@@ -29,23 +42,56 @@ function fmtNum(n: number) {
 
 export default function Dashboard() {
   const [preset, setPreset] = useState<Preset>('today')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
   const [data, setData] = useState<LocationSummary[]>([])
   const [range, setRange] = useState<{ from: string; to: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'amount' | 'transactions' | 'name'>('amount')
 
+  // Transaction detail drawer
+  const [selected, setSelected] = useState<LocationSummary | null>(null)
+  const [txns, setTxns] = useState<Transaction[]>([])
+  const [txnLoading, setTxnLoading] = useState(false)
+  const [txnError, setTxnError] = useState<string | null>(null)
+
+  const openDetail = useCallback(
+    async (loc: LocationSummary) => {
+      setSelected(loc)
+      setTxns([])
+      setTxnError(null)
+      setTxnLoading(true)
+      try {
+        const res = await fetch(
+          `/api/transactions?machine=${encodeURIComponent(loc.machineCode)}&preset=${preset}`
+        )
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
+        setTxns(json.transactions)
+      } catch (e: any) {
+        setTxnError(e.message)
+      } finally {
+        setTxnLoading(false)
+      }
+    },
+    [preset]
+  )
+
+  const closeDetail = useCallback(() => setSelected(null), [])
+
+  useEffect(() => {
+    if (!selected) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDetail()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selected, closeDetail])
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      let url = `/api/vendsoft?preset=${preset}`
-      if (preset === 'custom' && customFrom && customTo) {
-        url += `&from=${customFrom}&to=${customTo}`
-      }
-      const res = await fetch(url)
+      const res = await fetch(`/api/vendsoft?preset=${preset}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
       setData(json.data)
@@ -55,11 +101,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [preset, customFrom, customTo])
+  }, [preset])
 
   useEffect(() => {
-    if (preset !== 'custom') fetchData()
-  }, [preset, fetchData])
+    fetchData()
+  }, [fetchData])
 
   const totalRevenue = data.reduce((s, d) => s + d.totalAmount, 0)
   const totalTx = data.reduce((s, d) => s + d.totalTransactions, 0)
@@ -104,37 +150,6 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
-
-      {/* Custom date inputs */}
-      {preset === 'custom' && (
-        <div className="mb-6 flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="block mono text-xs text-gray-500 mb-1">From</label>
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="bg-[#111827] border border-[#1f2937] text-gray-200 rounded px-3 py-2 text-sm mono focus:outline-none focus:border-green-500"
-            />
-          </div>
-          <div>
-            <label className="block mono text-xs text-gray-500 mb-1">To</label>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="bg-[#111827] border border-[#1f2937] text-gray-200 rounded px-3 py-2 text-sm mono focus:outline-none focus:border-green-500"
-            />
-          </div>
-          <button
-            onClick={fetchData}
-            disabled={!customFrom || !customTo}
-            className="px-4 py-2 bg-green-500 text-black rounded text-sm mono font-semibold disabled:opacity-40 hover:bg-green-400 transition-colors"
-          >
-            Apply
-          </button>
-        </div>
-      )}
 
       {/* Summary cards */}
       {data.length > 0 && (
@@ -215,7 +230,8 @@ export default function Dashboard() {
                 return (
                   <tr
                     key={loc.machineCode}
-                    className="border-b border-[#1f2937]/50 hover:bg-white/[0.02] transition-colors"
+                    onClick={() => openDetail(loc)}
+                    className="border-b border-[#1f2937]/50 hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -263,6 +279,125 @@ export default function Dashboard() {
       <p className="mt-8 mono text-xs text-gray-700 text-center">
         Nano Market ATX · Smart Vending ATX LLC · Data via VendSoft
       </p>
+
+      {/* Transaction detail drawer */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
+          onClick={closeDetail}
+        >
+          <div
+            className="h-full w-full max-w-xl bg-[#0d1320] border-l border-[#1f2937] shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer header */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-[#1f2937]">
+              <div>
+                <p className="mono text-xs tracking-[0.2em] text-green-400 uppercase mb-1">
+                  Transactions
+                </p>
+                <h2 className="text-lg font-semibold text-white">{selected.locationName}</h2>
+                <p className="mono text-xs text-gray-500 mt-1">
+                  {selected.machineName}
+                  {range && (
+                    <>
+                      {' · '}
+                      {range.from === range.to ? range.from : `${range.from} → ${range.to}`}
+                    </>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={closeDetail}
+                className="text-gray-500 hover:text-white text-xl leading-none mono px-2"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer body */}
+            <div className="flex-1 overflow-y-auto">
+              {txnLoading && (
+                <div className="flex items-center gap-3 py-16 justify-center text-gray-500 mono text-sm">
+                  <span className="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                  Loading transactions…
+                </div>
+              )}
+
+              {txnError && (
+                <div className="m-6 bg-red-900/20 border border-red-500/30 rounded-lg p-4 mono text-sm text-red-400">
+                  ⚠ {txnError}
+                </div>
+              )}
+
+              {!txnLoading && !txnError && txns.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <p className="mono text-gray-600 text-sm">No transactions for this period.</p>
+                </div>
+              )}
+
+              {!txnLoading && txns.length > 0 && (
+                <table className="w-full">
+                  <thead className="sticky top-0 bg-[#0d1320]">
+                    <tr className="border-b border-[#1f2937]">
+                      <th className="text-left px-6 py-3 mono text-xs text-gray-500 uppercase tracking-widest">
+                        Date / Time
+                      </th>
+                      <th className="text-left px-3 py-3 mono text-xs text-gray-500 uppercase tracking-widest">
+                        Items
+                      </th>
+                      <th className="text-right px-6 py-3 mono text-xs text-gray-500 uppercase tracking-widest">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {txns.map((t) => (
+                      <tr
+                        key={t.transactionId}
+                        className="border-b border-[#1f2937]/50 hover:bg-white/[0.02] transition-colors align-top"
+                      >
+                        <td className="px-6 py-3 mono text-xs text-gray-400 whitespace-nowrap">
+                          {t.time}
+                          {t.card && (
+                            <span className="ml-2 text-[10px] text-gray-600 uppercase">card</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-sm text-gray-200">
+                          {t.items.map((it, j) => (
+                            <span key={j} className="block leading-snug">
+                              {it.name}
+                              {it.quantity > 1 && (
+                                <span className="text-gray-500"> ×{it.quantity}</span>
+                              )}
+                            </span>
+                          ))}
+                        </td>
+                        <td className="px-6 py-3 text-right mono text-sm font-semibold text-green-400 whitespace-nowrap">
+                          {fmt$(t.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Drawer footer */}
+            {!txnLoading && txns.length > 0 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[#1f2937] bg-[#0a0e1a]">
+                <span className="mono text-xs text-gray-500 uppercase tracking-widest">
+                  {fmtNum(txns.length)} transactions
+                </span>
+                <span className="mono text-sm font-semibold text-green-400">
+                  {fmt$(txns.reduce((s, t) => s + t.amount, 0))}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

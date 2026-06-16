@@ -1,8 +1,11 @@
-export type Preset = 'today' | 'yesterday' | 'week' | 'month' | 'custom'
+export type Preset = 'today' | 'yesterday' | 'week' | 'mtd'
 
 export function getDateRange(preset: Preset, customFrom?: string, customTo?: string) {
   const now = new Date()
   const fmt = (d: Date) => d.toISOString().split('T')[0]
+
+  // Explicit from/to (e.g. direct API calls) always win.
+  if (customFrom && customTo) return { from: customFrom, to: customTo }
 
   switch (preset) {
     case 'today':
@@ -17,12 +20,10 @@ export function getDateRange(preset: Preset, customFrom?: string, customTo?: str
       w.setDate(w.getDate() - 6)
       return { from: fmt(w), to: fmt(now) }
     }
-    case 'month': {
-      const m = new Date(now)
-      m.setDate(m.getDate() - 29)
-      return { from: fmt(m), to: fmt(now) }
+    case 'mtd': {
+      // Month to date: 1st of the current month → today.
+      const today = fmt(now)
+      return { from: today.slice(0, 8) + '01', to: today }
     }
-    case 'custom':
-      return { from: customFrom ?? fmt(now), to: customTo ?? fmt(now) }
   }
 }
