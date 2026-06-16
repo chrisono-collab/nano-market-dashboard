@@ -56,7 +56,7 @@ middleware.ts                     # runs updateSession on all routes except stat
 - **Date presets** (`lib/dates.ts`): Today, Yesterday, Last 7 Days, Month To Date. (Custom range was removed from the UI, but `/api/vendsoft?from=&to=` still works for direct calls.)
 - **Summary cards**: total revenue, transactions, avg ticket, top location.
 - **Locations table**: per-machine revenue, txn count, avg ticket; sortable by amount / transactions / name; mini revenue bar.
-- **Transaction detail drawer**: click any row → right-side drawer lists that machine's transactions for the active range in chronological order (date/time, items purchased w/ qty, amount, cash/card), with a footer total. Note: the drawer reflects the preset at click time; switching presets while open doesn't auto-refresh.
+- **Transaction detail drawer**: click any row → right-side drawer lists that machine's transactions for the active range, newest first (date/time, items purchased w/ qty, amount, cash/card), with a footer total. Locations whose machine name contains "freezer" show an "F" badge in the table. Note: the drawer reflects the preset at click time; switching presets while open doesn't auto-refresh.
 
 ## Supabase auth setup
 

@@ -310,8 +310,9 @@ export async function getMachineTransactions(
     groups.set(id, g)
   })
 
+  // Newest first (most recent transaction at the top).
   return Array.from(groups.values()).sort((a, b) =>
-    a.timestamp.localeCompare(b.timestamp)
+    b.timestamp.localeCompare(a.timestamp)
   )
 }
 

@@ -227,6 +227,7 @@ export default function Dashboard() {
               {sorted.map((loc, i) => {
                 const avg = loc.totalTransactions > 0 ? loc.totalAmount / loc.totalTransactions : 0
                 const pct = totalRevenue > 0 ? (loc.totalAmount / totalRevenue) * 100 : 0
+                const isFreezer = /freezer/i.test(loc.machineName)
                 return (
                   <tr
                     key={loc.machineCode}
@@ -237,7 +238,17 @@ export default function Dashboard() {
                       <div className="flex items-center gap-3">
                         <span className="mono text-xs text-gray-600 w-4">{i + 1}</span>
                         <div>
-                          <p className="text-sm font-medium text-gray-100">{loc.locationName}</p>
+                          <p className="text-sm font-medium text-gray-100 flex items-center gap-2">
+                            {loc.locationName}
+                            {isFreezer && (
+                              <span
+                                title="Freezer"
+                                className="mono text-[10px] font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded px-1 leading-tight"
+                              >
+                                F
+                              </span>
+                            )}
+                          </p>
                           {/* mini bar */}
                           <div className="mt-1 h-0.5 w-full max-w-[120px] bg-[#1f2937] rounded-full overflow-hidden">
                             <div
