@@ -9,10 +9,15 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Never let an auth/config error crash the whole app shell — just render
+  // without the signed-in bar. The middleware handles actual access control.
+  let user: { email?: string | null } | null = null
+  try {
+    const supabase = await createClient()
+    user = (await supabase.auth.getUser()).data.user
+  } catch (err) {
+    console.error('[auth] layout getUser failed:', err)
+  }
 
   return (
     <html lang="en">
