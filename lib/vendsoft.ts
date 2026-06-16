@@ -7,12 +7,14 @@ export interface Machine {
   machineName: string
   locationName: string
   locationCode: string
+  machineType: string // "Soda/Snack" (combo), "Snack", or "Soda"
 }
 
 export interface SalesSummary {
   machineCode: string
   machineName: string
   locationName: string
+  machineType: string
   totalAmount: number
   totalTransactions: number
 }
@@ -238,6 +240,7 @@ export async function getMachines(): Promise<Machine[]> {
     machineName: m.machineName ?? m.MachineName ?? m.name,
     locationName: m.locationName ?? m.LocationName ?? m.location ?? '',
     locationCode: m.locationCode ?? m.LocationCode ?? '',
+    machineType: m.machineType ?? m.MachineType ?? m.type ?? '',
   }))
 }
 
@@ -373,6 +376,7 @@ export async function getAllLocationsSales(range: DateRange): Promise<SalesSumma
         machineCode: m.machineCode,
         machineName: m.machineName,
         locationName: m.locationName || m.machineName,
+        machineType: m.machineType,
         totalAmount: sales.amount,
         totalTransactions: sales.transactions,
       }

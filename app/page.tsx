@@ -7,6 +7,7 @@ interface LocationSummary {
   machineCode: string
   machineName: string
   locationName: string
+  machineType: string
   totalAmount: number
   totalTransactions: number
 }
@@ -228,6 +229,9 @@ export default function Dashboard() {
                 const avg = loc.totalTransactions > 0 ? loc.totalAmount / loc.totalTransactions : 0
                 const pct = totalRevenue > 0 ? (loc.totalAmount / totalRevenue) * 100 : 0
                 const isFreezer = /freezer/i.test(loc.machineName)
+                const type = (loc.machineType || '').toLowerCase()
+                const isSnackOnly = type === 'snack'
+                const isSodaOnly = type === 'soda'
                 return (
                   <tr
                     key={loc.machineCode}
@@ -246,6 +250,22 @@ export default function Dashboard() {
                                 className="mono text-[10px] font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded px-1 leading-tight"
                               >
                                 F
+                              </span>
+                            )}
+                            {isSnackOnly && (
+                              <span
+                                title="Snack machine"
+                                className="mono text-[10px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-1 leading-tight"
+                              >
+                                Sn
+                              </span>
+                            )}
+                            {isSodaOnly && (
+                              <span
+                                title="Soda machine"
+                                className="mono text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/30 rounded px-1 leading-tight"
+                              >
+                                So
                               </span>
                             )}
                           </p>
