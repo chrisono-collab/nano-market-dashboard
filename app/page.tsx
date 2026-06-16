@@ -112,6 +112,13 @@ export default function Dashboard() {
   const totalTx = data.reduce((s, d) => s + d.totalTransactions, 0)
   const avgTx = totalTx > 0 ? totalRevenue / totalTx : 0
 
+  // How many machines share each location — used to only badge Snack/Soda
+  // where a location actually has more than one machine to tell apart.
+  const machinesPerLocation = data.reduce<Record<string, number>>((m, d) => {
+    m[d.locationName] = (m[d.locationName] ?? 0) + 1
+    return m
+  }, {})
+
   const sorted = [...data].sort((a, b) => {
     if (sortBy === 'amount') return b.totalAmount - a.totalAmount
     if (sortBy === 'transactions') return b.totalTransactions - a.totalTransactions
@@ -230,8 +237,12 @@ export default function Dashboard() {
                 const pct = totalRevenue > 0 ? (loc.totalAmount / totalRevenue) * 100 : 0
                 const isFreezer = /freezer/i.test(loc.machineName)
                 const type = (loc.machineType || '').toLowerCase()
-                const isSnackOnly = type === 'snack'
-                const isSodaOnly = type === 'soda'
+                // Only badge Snack/Soda when the location has 2+ machines to
+                // distinguish (e.g. CP Rec Center, Strictly) — a standalone
+                // machine like HL Chapman needs no badge.
+                const sharesLocation = (machinesPerLocation[loc.locationName] ?? 0) > 1
+                const isSnackOnly = sharesLocation && type === 'snack'
+                const isSodaOnly = sharesLocation && type === 'soda'
                 return (
                   <tr
                     key={loc.machineCode}
@@ -263,7 +274,7 @@ export default function Dashboard() {
                             {isSodaOnly && (
                               <span
                                 title="Soda machine"
-                                className="mono text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/30 rounded px-1 leading-tight"
+                                className="mono text-[10px] font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded px-1 leading-tight"
                               >
                                 So
                               </span>
