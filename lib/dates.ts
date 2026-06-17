@@ -1,29 +1,47 @@
 export type Preset = 'today' | 'yesterday' | 'week' | 'mtd'
 
-export function getDateRange(preset: Preset, customFrom?: string, customTo?: string) {
-  const now = new Date()
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
+// VendSoft transactionTime values are in local machine time (Central for ATX).
+// Use this TZ for presets so "today" matches on Vercel (UTC) and locally.
+const BUSINESS_TZ = 'America/Chicago'
 
+function calendarDayInTz(date = new Date()): { y: number; m: number; d: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TZ,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date)
+  const n = (type: string) => Number(parts.find((p) => p.type === type)!.value)
+  return { y: n('year'), m: n('month'), d: n('day') }
+}
+
+function fmt(y: number, m: number, d: number): string {
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+/** Shift a calendar date by N days (timezone-agnostic calendar math). */
+function shift(y: number, m: number, d: number, days: number): string {
+  const t = new Date(Date.UTC(y, m - 1, d + days))
+  return fmt(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate())
+}
+
+export function getDateRange(preset: Preset, customFrom?: string, customTo?: string) {
   // Explicit from/to (e.g. direct API calls) always win.
   if (customFrom && customTo) return { from: customFrom, to: customTo }
 
+  const { y, m, d } = calendarDayInTz()
+  const today = fmt(y, m, d)
+
   switch (preset) {
     case 'today':
-      return { from: fmt(now), to: fmt(now) }
+      return { from: today, to: today }
     case 'yesterday': {
-      const y = new Date(now)
-      y.setDate(y.getDate() - 1)
-      return { from: fmt(y), to: fmt(y) }
+      const yday = shift(y, m, d, -1)
+      return { from: yday, to: yday }
     }
-    case 'week': {
-      const w = new Date(now)
-      w.setDate(w.getDate() - 6)
-      return { from: fmt(w), to: fmt(now) }
-    }
-    case 'mtd': {
-      // Month to date: 1st of the current month → today.
-      const today = fmt(now)
-      return { from: today.slice(0, 8) + '01', to: today }
-    }
+    case 'week':
+      return { from: shift(y, m, d, -6), to: today }
+    case 'mtd':
+      return { from: fmt(y, m, 1), to: today }
   }
 }
