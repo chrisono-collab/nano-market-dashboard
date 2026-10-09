@@ -1,39 +1,25 @@
-# Next Steps: HaHa velocity integration (Phase 2)
+# Next Steps: HaHa velocity integration
 
 _Last updated: 2026-10-09_
 
-Branch: `haha-velocity-integration` (local commits, not pushed yet). Do not merge to `main` until Chris reviews the preview.
+## Shipped to production 2026-10-09
 
-## Built and verified
+- `/machines` and `/machines/[marketId]`: stockout-corrected sales velocity per machine, sortable, frozen headers, flags (Variety estimate, Too new, Short window, Much unknown, Unmapped, No restock history)
+- Dashboard: Last Month and Custom Range presets (older days read from Supabase history), link to the velocity reports, purchases counted per shared timestamp instead of per line item
+- Supabase history: USAT Jan 1 to Oct 8 (two exports layered), VendSoft snapshots from Sep 11, HaHa restock events from the prototype plus catch-up
+- Daily sync: `/api/cron/daily-sync` at 11:00 UTC (6am Central), production only
+- Product mapping: unmapped down from 90 to 7 across the fleet, all confirmed by Chris
+- Addresses and the Sparq on Rio name come from `data/machine-addresses.json` and `data/machine-names.json`
 
-- Supabase schema: `supabase/migrations/0001_haha_velocity.sql` (sales_line_items, restock_events, restock_scan_state; RLS read for signed-in users, writes via service role only)
-- HaHa API client ported to `lib/haha/` (fetches marked no-store so Next 14 never caches them)
-- Velocity engine ported to `lib/velocity.ts`. Checked against the Python prototype on The Bowen: 36 of 38 products match exactly; the other 2 have 6 days of history and are now flagged "Too new" (under 7 days) with velocity blank
-- Known data gaps (spans with no sales from any source) count as unknown days, never in stock
-- Daily sync: `/api/cron/daily-sync` + `vercel.json` cron (11:00 UTC). Re-snapshots VendSoft's last 7 completed days (handles upload lag), then scans new HaHa restock logs within a 240s budget
-- Pages: `/machines` (HaHa's live list, name + street address, framed as velocity reports) and `/machines/[marketId]` (sortable table, default velocity descending, every column sortable, flags: Variety estimate, Too new, Short window, Much unknown, Unmapped, No restock history)
-- Product naming: `displayName` added to `data/product-name-mapping.json` for 37 products, auto-matched to the warehouse sheet; others fall back to the USAT/VendSoft sales name. Variety rows show the warehouse line name with the HaHa flavor underneath
-- One-time bootstrap scripts: `scripts/bootstrap_usat_sales.py`, `scripts/bootstrap_restock_events.py`. USAT labels resolve to HaHa marketIds via VendSoft machineCode -> telemetryId (all 27 labels resolve)
-- `npx tsc --noEmit` and `npm run build` pass
-- Existing files touched (minimal): `lib/supabase/middleware.ts` (lets `/api/cron/*` through; route checks CRON_SECRET), `lib/vendsoft.ts` (new `getRawMachineSales` export only), `.gitignore`, `CLAUDE.md`, `.env.local.example`
+## Check soon
 
-## Waiting on Chris
+- Confirm the first cron run on 2026-10-10: Vercel -> Logs, filter `/api/cron/daily-sync`, expect `ok: true` with yesterday in `daysWritten`
 
-1. OK to add to Vercel (Production + Preview): HAHA_APP_KEY, HAHA_APP_SECRET, SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET
+## Still unmapped (no sales under any known name)
 
-## Then (Claude)
+Nerds Gummy Clusters 5oz, Red Bull Sugar Free Strawberry Apricot, Red Bull Sea Blue Juneberry, Snapple multi-flavor 20oz, Ritz Cheese Sandwich Crackers, Bumble Bee Chicken Salad, Ruffles Baked Cheddar
 
-1. Push branch, check the Vercel preview URL (Chris logs in; Claude can't use real credentials)
-2. Review together; merge only on Chris's approval. Cron runs only on production, so it starts after merge
+## Ideas, not started
 
-## Done 2026-10-09
-
-- Schema applied, service key added, restock events loaded (21,741 + 176 caught up), USAT history loaded (Jan 1 to Oct 8, from two exports layered), VendSoft Sep 11 to Oct 8 snapshotted. No data gaps remain
-- No more USAT exports needed: daily VendSoft snapshots prevent gaps from now on
-- Safety net if a day is ever missed: HaHa's GET /open/api/v1/sales has full history back to Feb 2025 (oldest-first paging, saleItems carry productId). Not wired in yet
-
-## Open questions
-
-- Nutella &Go! (A2024091800011) was "pending Chris's input" in the prototype; the new code treats it like any other product (no special exclusion)
-- HaHa no longer lists Johnstone Plumbing (B71976) or Johnstone Metric (B85236) but VendSoft still shows sales for them; new HaHa machines Sqarq on Rio and Baer Manufacturing have little or no history yet
-- Optional: add a "Velocity reports" link to the main dashboard header (left out to keep existing pages untouched)
+- Backfill missed days automatically from HaHa's GET /open/api/v1/sales (full history back to Feb 2025, saleItems carry productId)
+- A Postgres function to aggregate long custom ranges server-side if multi-month ranges get slow
