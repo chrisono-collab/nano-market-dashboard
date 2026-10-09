@@ -159,6 +159,15 @@
       "salesName": "Newman's Own Thin & Crispy Crust Pizza",
       "note": "\"Newman's Own Thin & Crispy Crust Supreme Pizza\" -- confirmed by Chris against warehouse inventory sheet",
       "displayName": "Newman's Own Thin & Crispy Crust Pizza"
+    },
+    "A2025092700077": {
+      "salesName": "KitKat",
+      "displayName": "KitKat",
+      "note": "\"KitKat - 1.5oz\" candy bar, confirmed by Chris 2026-10-09; distinct from the frozen \"KitKat Pint\""
+    },
+    "A2025110600079": {
+      "salesName": "Takis 3oz",
+      "note": "\"Takis fuego 3.25oz\" -- confirmed by Chris 2026-10-09"
     }
   },
   "aggregate": {
@@ -339,6 +348,33 @@
         "Welch's Variety"
       ],
       "note": "\"Welch's Fruit Snacks Mixed Fruit\" -- Chris confirmed this as a direct match, but the only Welch's SKU in sales is the aggregate \"Welch's Variety\" line (no flavor-specific SKU exists) -- reclassified here as aggregate rather than direct for that reason; treat the resulting velocity as an upper-bound estimate like the other Variety-line products"
+    },
+    "A2025050100014": {
+      "salesNames": [
+        "Celsius Variety"
+      ],
+      "note": "\"Celsius\" -- variety estimate, confirmed by Chris 2026-10-09",
+      "displayName": "Celsius"
+    },
+    "A2024111000007": {
+      "salesNames": [
+        "Red Bull 12oz",
+        "Red Bull 12oz Blue",
+        "Red Bull 12oz Pink",
+        "Red Bull 12oz Sugar Free",
+        "Red Bull Zero Sugar 12oz"
+      ],
+      "note": "\"Red Bull Sugar Free Strawberry Apricot 355ml\" -- variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025080500036": {
+      "salesNames": [
+        "Red Bull 12oz",
+        "Red Bull 12oz Blue",
+        "Red Bull 12oz Pink",
+        "Red Bull 12oz Sugar Free",
+        "Red Bull Zero Sugar 12oz"
+      ],
+      "note": "\"Red Bull Sea Blue Edition Juneberry 250ml\" -- variety estimate, confirmed by Chris 2026-10-09"
     }
   },
   "discontinued": {
