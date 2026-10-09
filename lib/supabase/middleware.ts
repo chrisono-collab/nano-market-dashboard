@@ -9,7 +9,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 // throwing a MIDDLEWARE_INVOCATION_FAILED 500.
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const isPublic = pathname === '/login' || pathname.startsWith('/auth')
+  // /api/cron/* has no user session; those routes check CRON_SECRET themselves.
+  const isPublic = pathname === '/login' || pathname.startsWith('/auth') || pathname.startsWith('/api/cron/')
 
   const denyProtected = (status: number, message: string) => {
     if (isPublic) return NextResponse.next({ request })

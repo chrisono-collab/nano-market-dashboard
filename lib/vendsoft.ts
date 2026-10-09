@@ -319,6 +319,12 @@ export async function getMachineTransactions(
   )
 }
 
+/** Unfiltered sales line-items for one machine (VendSoft's full rolling ~30-day window). */
+export async function getRawMachineSales(machineCode: string): Promise<any[]> {
+  const data = await vsGet(`/machines/${machineCode}/sales`)
+  return Array.isArray(data) ? data : []
+}
+
 export async function getMachineSales(
   machineCode: string,
   range: DateRange
