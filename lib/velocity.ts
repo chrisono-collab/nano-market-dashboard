@@ -125,7 +125,9 @@ export interface MachineReport {
 }
 
 const round = (n: number, d: number) => Math.round(n * 10 ** d) / 10 ** d
-const isoDay = (t: number) => new Date(t).toISOString().slice(0, 10)
+const isoDay = (t: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date(t))
+
+export { isoDay }
 
 export function buildMachineReport(
   products: PlanogramProduct[],
@@ -175,7 +177,7 @@ export function buildMachineReport(
     const blank: VelocityRow = {
       productId,
       name,
-      subName: isAggregateEstimate ? hahaName : null,
+      subName: isAggregateEstimate && name !== hahaName ? hahaName : null,
       salesSkus,
       unitsSold: null,
       velocity: null,

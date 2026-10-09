@@ -1,7 +1,7 @@
 """
 One-time (re-runnable) load of the USAT sales export into sales_line_items.
-Replaces every source='usat' row, so re-run it with a newer export to extend
-history. USAT "Machine" labels ("[9] The Bowen") resolve to HaHa marketIds
+Replaces source='usat' rows only within the dates this file covers, so
+exports with different ranges layer together. Load older exports first. USAT "Machine" labels ("[9] The Bowen") resolve to HaHa marketIds
 via the bracket number, which equals VendSoft's machineCode, whose sales rows
 carry the HaHa marketId as telemetryId. Falls back to HaHa name match, plus
 overrides for retired terminal labels.
@@ -42,6 +42,10 @@ def resolve(label):
     return by_code.get(m.group(1)) or by_name.get(m.group(2))
 
 
+# The export's final day is usually cut off at export time; leave it to VendSoft.
+last_day = df["Timestamp"].max().normalize()
+df = df[df["Timestamp"] < last_day]
+
 df["market_id"] = df["Machine"].map(resolve)
 unresolved = Counter(df.loc[df["market_id"].isna(), "Machine"])
 df = df[df["market_id"].notna() & df["Product"].notna()]
@@ -66,6 +70,7 @@ if unresolved:
     for label, n in unresolved.most_common():
         print(f"  {label}: {n} rows")
 
-delete("sales_line_items", {"source": "eq.usat"})
+first, last = min(r["sale_day"] for r in rows), max(r["sale_day"] for r in rows)
+delete("sales_line_items", {"source": "eq.usat", "and": f"(sale_day.gte.{first},sale_day.lte.{last})"})
 insert("sales_line_items", rows)
 print("done")

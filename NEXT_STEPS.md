@@ -19,17 +19,18 @@ Branch: `haha-velocity-integration` (local commits, not pushed yet). Do not merg
 
 ## Waiting on Chris
 
-1. Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` (Supabase -> Settings -> API -> service_role / `sb_secret_...`)
-2. Paste `supabase/migrations/0001_haha_velocity.sql` into the Supabase SQL editor and run it once
-3. Fresh USAT export covering Aug 30 onward. Aug 30 to Sep 11 is in neither source now (VendSoft's 30-day window rolled past it). Until then the dashboard marks that span as unknown
-4. OK to add to Vercel (Production + Preview): HAHA_APP_KEY, HAHA_APP_SECRET, SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET
+1. OK to add to Vercel (Production + Preview): HAHA_APP_KEY, HAHA_APP_SECRET, SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET
 
 ## Then (Claude)
 
-1. Run `python3 scripts/bootstrap_restock_events.py` and `python3 scripts/bootstrap_usat_sales.py <usat.xlsx>`
-2. Trigger one sync locally (`curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/daily-sync`) to load VendSoft's window and catch restocks up from Sep 9 (may need 2 runs; each is time-boxed)
-3. Push branch, check the Vercel preview URL (Chris logs in; Claude can't use real credentials)
-4. Review together; merge only on Chris's approval. Cron runs only on production, so it starts after merge
+1. Push branch, check the Vercel preview URL (Chris logs in; Claude can't use real credentials)
+2. Review together; merge only on Chris's approval. Cron runs only on production, so it starts after merge
+
+## Done 2026-10-09
+
+- Schema applied, service key added, restock events loaded (21,741 + 176 caught up), USAT history loaded (Jan 1 to Oct 8, from two exports layered), VendSoft Sep 11 to Oct 8 snapshotted. No data gaps remain
+- No more USAT exports needed: daily VendSoft snapshots prevent gaps from now on
+- Safety net if a day is ever missed: HaHa's GET /open/api/v1/sales has full history back to Feb 2025 (oldest-first paging, saleItems carry productId). Not wired in yet
 
 ## Open questions
 

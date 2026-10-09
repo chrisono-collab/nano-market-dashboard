@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAllMarkets, getPlanogram } from '@/lib/haha/api'
-import { buildMachineReport, type Interval, type MachineReport, type StockEvent } from '@/lib/velocity'
+import { buildMachineReport, isoDay, type Interval, type MachineReport, type StockEvent } from '@/lib/velocity'
 
 const PAGE = 1000
 
@@ -86,7 +86,7 @@ export async function loadMachineReport(sb: SupabaseClient, marketId: string): P
     marketId,
     marketName: market.marketName,
     marketLocation: String(market.marketLocation ?? ''),
-    dataGaps: dataGaps.map((g) => ({ start: new Date(g.start).toISOString().slice(0, 10), end: new Date(g.end).toISOString().slice(0, 10) })),
+    dataGaps: dataGaps.map((g) => ({ start: isoDay(g.start), end: isoDay(g.end) })),
   }
 }
 
