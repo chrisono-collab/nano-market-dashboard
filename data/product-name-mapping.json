@@ -168,6 +168,70 @@
     "A2025110600079": {
       "salesName": "Takis 3oz",
       "note": "\"Takis fuego 3.25oz\" -- confirmed by Chris 2026-10-09"
+    },
+    "A2024092600014": {
+      "salesName": "Gatorade Frost - Glacier Cherry",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025030200022": {
+      "salesName": "Sour Patch Kids 3.6 oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025051300027": {
+      "salesName": "Sour Patch Kids 3.6 oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024052600005": {
+      "salesName": "Snapple - Kiwi Strawberry",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025090200065": {
+      "salesName": "Trader Joe’s Chicken Burrito Bowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2026011500043": {
+      "salesName": "Beef & Queso Bowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025090800068": {
+      "salesName": "100 Grand Ice Cream",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025082900018": {
+      "salesName": "Twix Ice Cream Bar",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024091800018": {
+      "salesName": "Nongshim Noodle Hot & Spicy",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024102200017": {
+      "salesName": "A&W Root Beer 12oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024100100009": {
+      "salesName": "Big Red 12oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024090300004": {
+      "salesName": "7UP",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025082100076": {
+      "salesName": "7UP - Zero Sugar",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025111400039": {
+      "salesName": "Trader Joe's Cuban Style Citrus GarlicBowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025053000045": {
+      "salesName": "Arizona Sour Fruit Snack",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025020500005": {
+      "salesName": "Tyson Spicy Chicken Sandwich",
+      "note": "confirmed by Chris 2026-10-09"
     }
   },
   "aggregate": {
@@ -356,25 +420,65 @@
       "note": "\"Celsius\" -- variety estimate, confirmed by Chris 2026-10-09",
       "displayName": "Celsius"
     },
-    "A2024111000007": {
+    "A2025121600001": {
       "salesNames": [
-        "Red Bull 12oz",
-        "Red Bull 12oz Blue",
-        "Red Bull 12oz Pink",
-        "Red Bull 12oz Sugar Free",
-        "Red Bull Zero Sugar 12oz"
+        "Bloom Pop Variety"
       ],
-      "note": "\"Red Bull Sugar Free Strawberry Apricot 355ml\" -- variety estimate, confirmed by Chris 2026-10-09"
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
     },
-    "A2025080500036": {
+    "A2024111900005": {
       "salesNames": [
-        "Red Bull 12oz",
-        "Red Bull 12oz Blue",
-        "Red Bull 12oz Pink",
-        "Red Bull 12oz Sugar Free",
-        "Red Bull Zero Sugar 12oz"
+        "Alani Variety"
       ],
-      "note": "\"Red Bull Sea Blue Edition Juneberry 250ml\" -- variety estimate, confirmed by Chris 2026-10-09"
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025061400024": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025102200113": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025031000020": {
+      "salesNames": [
+        "Barebell Protein Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025082100082": {
+      "salesNames": [
+        "Barebell Protein Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025041400047": {
+      "salesNames": [
+        "Baked Lay Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025020300028": {
+      "salesNames": [
+        "Perfect Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025040900025": {
+      "salesNames": [
+        "Perfect Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025041000025": {
+      "salesNames": [
+        "David Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
     }
   },
   "discontinued": {
