@@ -69,12 +69,12 @@ export default function VelocityTable({ rows }: { rows: VelocityRow[] }) {
   }
 
   return (
-    <div className="bg-[#111827] border border-[#1f2937] rounded-lg overflow-x-auto">
+    <div className="bg-[#111827] border border-[#1f2937] rounded-lg overflow-auto max-h-[calc(100vh-4rem)]">
       <table className="w-full min-w-[720px]">
         <thead>
           <tr className="border-b border-[#1f2937]">
             {COLUMNS.map((c) => (
-              <th key={c.key} className={`px-4 py-3 ${c.numeric ? 'text-right' : 'text-left'}`}>
+              <th key={c.key} className={`sticky top-0 z-10 bg-[#111827] shadow-[inset_0_-1px_0_#1f2937] px-4 py-3 ${c.numeric ? 'text-right' : 'text-left'}`}>
                 <button
                   onClick={() => onSort(c.key)}
                   className={`mono text-xs uppercase tracking-widest hover:text-green-400 ${sortKey === c.key ? 'text-green-400' : 'text-gray-500'}`}

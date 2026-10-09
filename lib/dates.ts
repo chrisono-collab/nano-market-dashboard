@@ -1,4 +1,4 @@
-export type Preset = 'today' | 'yesterday' | 'week' | 'mtd'
+export type Preset = 'today' | 'yesterday' | 'week' | 'mtd' | 'lastMonth'
 
 // VendSoft transactionTime values are in local machine time (Central for ATX).
 // Use this TZ for presets so "today" matches on Vercel (UTC) and locally.
@@ -43,5 +43,18 @@ export function getDateRange(preset: Preset, customFrom?: string, customTo?: str
       return { from: shift(y, m, d, -6), to: today }
     case 'mtd':
       return { from: fmt(y, m, 1), to: today }
+    case 'lastMonth': {
+      const firstOfThisMonth = new Date(Date.UTC(y, m - 1, 1))
+      const lastOfPrev = new Date(firstOfThisMonth.getTime() - 86_400_000)
+      const py = lastOfPrev.getUTCFullYear()
+      const pm = lastOfPrev.getUTCMonth() + 1
+      return { from: fmt(py, pm, 1), to: fmt(py, pm, lastOfPrev.getUTCDate()) }
+    }
   }
+}
+
+/** Today's date in the business timezone, shifted by `days`. */
+export function businessDay(days = 0): string {
+  const { y, m, d } = calendarDayInTz()
+  return shift(y, m, d, days)
 }

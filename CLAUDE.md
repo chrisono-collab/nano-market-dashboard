@@ -48,7 +48,7 @@ middleware.ts                     # runs updateSession on all routes except stat
 ### Key data quirks (important)
 - **The sales endpoint ignores `from`/`to` query params.** It always returns a rolling **~30-day window** of raw vend line-items. So date filtering is done **client-side** by parsing each row's `transactionTime` ("YYYYMMDDHHMMSS"). **Consequence: date ranges older than ~30 days return no data.**
 - A sales record is one **line item**: `{ transactionId, transactionTime, productName, price, quantity, creditCard, ... }`.
-- **Revenue** = Σ(`price` × `quantity`). **Transaction count** = distinct `transactionId` (one card swipe can buy several line-items).
+- **Revenue** = Σ(`price` × `quantity`). **Transaction count** = distinct `transactionTime` per machine. Despite the name, `transactionId` is unique per line item, so items from one purchase share a timestamp, not an id.
 - Machine list lives at `/machines`; `machineCode` values are small integers ("2", "3", ...).
 
 ## Dashboard features
