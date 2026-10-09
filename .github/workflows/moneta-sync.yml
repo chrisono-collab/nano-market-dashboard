@@ -16,6 +16,11 @@ jobs:
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          # Tolerate pasted whitespace or a leading "NAME=" in the secrets.
+          SECRET=$(printf '%s' "${CRON_SECRET#CRON_SECRET=}" | tr -d '[:space:]"')
+          URL=$(printf '%s' "${DASHBOARD_URL#DASHBOARD_URL=}" | tr -d '[:space:]"')
+          if [ -z "$SECRET" ] || [ -z "$URL" ]; then echo "DASHBOARD_URL or CRON_SECRET secret is empty"; exit 1; fi
+          echo "Secret length: ${#SECRET} (should be 64)"
           curl --fail-with-body -sS --max-time 150 \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${DASHBOARD_URL%/}/api/cron/moneta-sync"
+            -H "Authorization: Bearer ${SECRET}" \
+            "${URL%/}/api/cron/moneta-sync"
