@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import mapping from '@/data/product-name-mapping.json'
 import { createClient } from '@/lib/supabase/server'
 
-// Our sales product names (the names VendSoft/USAT use), offered as suggestions.
-function knownSkus(): string[] {
+// Mapping-file names: a fallback if the sales_product_names view is missing.
+function mappingFileSkus(): string[] {
   const names = new Set<string>()
   for (const group of ['direct', 'aggregate'] as const) {
     for (const v of Object.values((mapping as any)[group] ?? {}) as any[]) {
@@ -15,16 +15,25 @@ function knownSkus(): string[] {
   return Array.from(names).sort((a, b) => a.localeCompare(b))
 }
 
+// Every product name in our sales history (VendSoft/USAT), offered as the picklist.
 export async function GET() {
   const sb = await createClient()
-  const [unmapped, mapped] = await Promise.all([
+  const [unmapped, mapped, names] = await Promise.all([
     sb.from('moneta_unmapped_products').select('*').order('units', { ascending: false }),
     sb.from('moneta_product_map').select('moneta_name, sku, updated_at').not('sku', 'is', null).neq('sku', '').order('moneta_name'),
+    sb.from('sales_product_names').select('product_name').limit(5000),
   ])
   if (unmapped.error || mapped.error) {
     return NextResponse.json({ error: (unmapped.error ?? mapped.error)!.message }, { status: 500 })
   }
-  return NextResponse.json({ unmapped: unmapped.data, mapped: mapped.data, skus: knownSkus() })
+  const skus = new Set(mappingFileSkus())
+  if (names.error) console.error('sales_product_names:', names.error.message)
+  for (const r of names.data ?? []) skus.add(r.product_name)
+  return NextResponse.json({
+    unmapped: unmapped.data,
+    mapped: mapped.data,
+    skus: Array.from(skus).sort((a, b) => a.localeCompare(b)),
+  })
 }
 
 export async function POST(req: NextRequest) {

@@ -35,12 +35,20 @@ export default function MonetaProductsPage() {
       setUnmapped(json.unmapped)
       setMapped(json.mapped)
       setSkus(json.skus)
-      // Pre-fill exact name matches with our own product names.
-      const lower = new Map<string, string>((json.skus as string[]).map((s) => [s.toLowerCase(), s]))
+      // Pre-fill an exact name match, or the only one of our names that starts
+      // with the Moneta name (e.g. "Coke Zero" -> "Coke Zero 16.9oz").
+      const skuList = json.skus as string[]
+      const guess = (name: string) => {
+        const n = name.toLowerCase()
+        const exact = skuList.find((s) => s.toLowerCase() === n)
+        if (exact) return exact
+        const starts = skuList.filter((s) => s.toLowerCase().startsWith(n + ' '))
+        return starts.length === 1 ? starts[0] : ''
+      }
       setDrafts((d) => {
         const next = { ...d }
         for (const u of json.unmapped as Unmapped[]) {
-          if (next[u.product_name] === undefined) next[u.product_name] = lower.get(u.product_name.toLowerCase()) ?? ''
+          if (next[u.product_name] === undefined) next[u.product_name] = guess(u.product_name)
         }
         return next
       })
