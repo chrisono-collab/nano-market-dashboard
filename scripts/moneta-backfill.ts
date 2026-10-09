@@ -49,6 +49,17 @@ async function main() {
     rows += r.rows
     console.log(`${start} -> ${end}: ${r.carts} carts, ${r.rows} lines (${new Date().toLocaleTimeString()})`)
   }
+  // Record the run so the dashboard's sync banner reflects it.
+  const { count } = await admin.from('moneta_transactions').select('id', { count: 'exact', head: true })
+  await admin.from('moneta_sync_state').upsert({
+    id: 'default',
+    last_success_at: new Date().toISOString(),
+    last_cursor: addDays(businessDay(0), -1) < to ? addDays(businessDay(0), -1) : to,
+    last_error: null,
+    total_rows: count ?? null,
+    machines,
+    updated_at: new Date().toISOString(),
+  })
   console.log(`Done: ${carts} carts, ${rows} lines across ${from} -> ${to}`)
 }
 
