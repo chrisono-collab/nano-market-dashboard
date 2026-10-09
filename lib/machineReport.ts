@@ -2,9 +2,14 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAllMarkets, getPlanogram } from '@/lib/haha/api'
 import mapping from '@/data/product-name-mapping.json'
 import addresses from '@/data/machine-addresses.json'
+import names from '@/data/machine-names.json'
 import { buildMachineReport, isoDay, normName, type Interval, type MachineReport, type StockEvent } from '@/lib/velocity'
 
 const PAGE = 1000
+
+function nameOf(m: { marketId: string; marketName: string }): string {
+  return (names as Record<string, string>)[m.marketId] ?? m.marketName
+}
 
 function addressOf(m: { marketId: string; marketLocation?: unknown }): string {
   return (addresses as Record<string, string>)[m.marketId] ?? String(m.marketLocation ?? '')
@@ -111,7 +116,7 @@ export async function loadMachineReport(sb: SupabaseClient, marketId: string): P
   return {
     ...report,
     marketId,
-    marketName: market.marketName,
+    marketName: nameOf(market),
     marketLocation: addressOf(market),
     dataGaps: dataGaps.map((g) => ({ start: isoDay(g.start), end: isoDay(g.end) })),
   }
@@ -120,6 +125,6 @@ export async function loadMachineReport(sb: SupabaseClient, marketId: string): P
 export async function listMachines() {
   const markets = await getAllMarkets()
   return markets
-    .map((m) => ({ marketId: m.marketId, marketName: m.marketName, marketLocation: addressOf(m) }))
+    .map((m) => ({ marketId: m.marketId, marketName: nameOf(m), marketLocation: addressOf(m) }))
     .sort((a, b) => a.marketName.localeCompare(b.marketName))
 }
