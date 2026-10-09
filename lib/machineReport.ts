@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAllMarkets, getPlanogram } from '@/lib/haha/api'
-import { buildMachineReport, isoDay, type Interval, type MachineReport, type StockEvent } from '@/lib/velocity'
+import mapping from '@/data/product-name-mapping.json'
+import { buildMachineReport, isoDay, normName, type Interval, type MachineReport, type StockEvent } from '@/lib/velocity'
 
 const PAGE = 1000
 
@@ -74,11 +75,32 @@ export async function loadMachineReport(sb: SupabaseClient, marketId: string): P
     eventsByProduct.set(e.product_id, list)
   }
 
+  // Unmapped products with no sales here: look for their exact name (any case)
+  // in other machines' sales.
+  const localNames = new Set(usable.map((s) => normName(s.product_name)))
+  const unresolved = Array.from(products.entries()).filter(
+    ([id, name]) => !(id in mapping.direct) && !(id in mapping.aggregate) && !localNames.has(normName(name))
+  )
+  const otherSalesNames = (
+    await Promise.all(
+      unresolved.map(async ([, name]) => {
+        const { data, error } = await sb
+          .from('sales_line_items')
+          .select('product_name')
+          .ilike('product_name', name.replace(/[\\%_]/g, (c) => `\\${c}`))
+          .limit(1)
+        if (error) throw new Error(error.message)
+        return data?.[0]?.product_name as string | undefined
+      })
+    )
+  ).filter((n): n is string => Boolean(n))
+
   const report = buildMachineReport(
     Array.from(products, ([productId, hahaName]) => ({ productId, hahaName })),
     usable.map((s) => ({ productName: s.product_name, quantity: Number(s.quantity), soldAt: new Date(s.sold_at).getTime() })),
     eventsByProduct,
-    dataGaps
+    dataGaps,
+    otherSalesNames
   )
 
   return {

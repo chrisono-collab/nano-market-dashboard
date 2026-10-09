@@ -133,7 +133,10 @@ export function buildMachineReport(
   products: PlanogramProduct[],
   sales: SaleRow[],
   eventsByProduct: Map<string, StockEvent[]>,
-  dataGaps: Interval[]
+  dataGaps: Interval[],
+  // Sales names seen at other machines, so a product that never sold here
+  // matches (and shows 0 sales) instead of looking unmapped.
+  otherSalesNames: string[] = []
 ): MachineReport {
   const qtyByName = new Map<string, number>()
   const timesByName = new Map<string, number[]>()
@@ -149,6 +152,8 @@ export function buildMachineReport(
     salesStart = Math.min(salesStart, s.soldAt)
     salesEnd = Math.max(salesEnd, s.soldAt)
   }
+
+  for (const n of otherSalesNames) if (!normToName.has(normName(n))) normToName.set(normName(n), n)
 
   let historyStartsAt = Infinity
   eventsByProduct.forEach((evs) => {
