@@ -4,3 +4,9 @@ node_modules/
 .env
 *.log
 tsconfig.tsbuildinfo
+
+# vercel
+.vercel
+.DS_Store
+recovery-codes.txt
+__pycache__/

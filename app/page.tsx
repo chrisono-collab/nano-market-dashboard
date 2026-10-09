@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import type { Preset } from '@/lib/dates'
 
 interface LocationSummary {
@@ -31,6 +32,7 @@ const PRESETS: { label: string; value: Preset }[] = [
   { label: 'Yesterday', value: 'yesterday' },
   { label: 'Last 7 Days', value: 'week' },
   { label: 'Month To Date', value: 'mtd' },
+  { label: 'Last Month', value: 'lastMonth' },
 ]
 
 function fmt$(n: number) {
@@ -43,6 +45,11 @@ function fmtNum(n: number) {
 
 export default function Dashboard() {
   const [preset, setPreset] = useState<Preset>('today')
+  const [custom, setCustom] = useState<{ from: string; to: string } | null>(null)
+  const [showCustom, setShowCustom] = useState(false)
+  const [draftFrom, setDraftFrom] = useState('')
+  const [draftTo, setDraftTo] = useState('')
+  const query = custom ? `from=${custom.from}&to=${custom.to}` : `preset=${preset}`
   const [data, setData] = useState<LocationSummary[]>([])
   const [range, setRange] = useState<{ from: string; to: string } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -63,7 +70,7 @@ export default function Dashboard() {
       setTxnLoading(true)
       try {
         const res = await fetch(
-          `/api/transactions?machine=${encodeURIComponent(loc.machineCode)}&preset=${preset}`
+          `/api/transactions?machine=${encodeURIComponent(loc.machineCode)}&${query}`
         )
         const json = await res.json()
         if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
@@ -74,7 +81,7 @@ export default function Dashboard() {
         setTxnLoading(false)
       }
     },
-    [preset]
+    [query]
   )
 
   const closeDetail = useCallback(() => setSelected(null), [])
@@ -92,7 +99,7 @@ export default function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/vendsoft?preset=${preset}`)
+      const res = await fetch(`/api/vendsoft?${query}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
       setData(json.data)
@@ -102,7 +109,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [preset])
+  }, [query])
 
   useEffect(() => {
     fetchData()
@@ -134,6 +141,9 @@ export default function Dashboard() {
         <div>
           <p className="mono text-xs tracking-[0.2em] text-green-400 uppercase mb-1">Nano Market ATX</p>
           <h1 className="text-2xl font-semibold text-white">Sales Dashboard</h1>
+          <Link href="/machines" className="mono text-xs text-green-400 hover:text-green-300">
+            Product velocity reports by machine →
+          </Link>
           {range && (
             <p className="text-sm text-gray-500 mt-1 mono">
               {range.from === range.to ? range.from : `${range.from} → ${range.to}`}
@@ -146,9 +156,13 @@ export default function Dashboard() {
           {PRESETS.map((p) => (
             <button
               key={p.value}
-              onClick={() => setPreset(p.value)}
+              onClick={() => {
+                setPreset(p.value)
+                setCustom(null)
+                setShowCustom(false)
+              }}
               className={`px-3 py-1.5 rounded text-xs mono transition-all ${
-                preset === p.value
+                !custom && preset === p.value
                   ? 'bg-green-500 text-black font-semibold'
                   : 'bg-[#111827] text-gray-400 border border-[#1f2937] hover:border-green-500/50 hover:text-green-400'
               }`}
@@ -156,6 +170,57 @@ export default function Dashboard() {
               {p.label}
             </button>
           ))}
+          <button
+            onClick={() => {
+              setShowCustom(!showCustom)
+              if (range) {
+                setDraftFrom(draftFrom || range.from)
+                setDraftTo(draftTo || range.to)
+              }
+            }}
+            className={`px-3 py-1.5 rounded text-xs mono transition-all ${
+              custom
+                ? 'bg-green-500 text-black font-semibold'
+                : 'bg-[#111827] text-gray-400 border border-[#1f2937] hover:border-green-500/50 hover:text-green-400'
+            }`}
+          >
+            Custom Range
+          </button>
+          {showCustom && (
+            <form
+              className="flex flex-wrap items-center gap-2 w-full md:w-auto"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (draftFrom && draftTo && draftFrom <= draftTo) {
+                  setCustom({ from: draftFrom, to: draftTo })
+                  setShowCustom(false)
+                }
+              }}
+            >
+              <input
+                type="date"
+                value={draftFrom}
+                max={draftTo || undefined}
+                onChange={(e) => setDraftFrom(e.target.value)}
+                className="bg-[#111827] border border-[#1f2937] rounded px-2 py-1 text-xs mono text-gray-200 [color-scheme:dark]"
+              />
+              <span className="text-xs text-gray-500">to</span>
+              <input
+                type="date"
+                value={draftTo}
+                min={draftFrom || undefined}
+                onChange={(e) => setDraftTo(e.target.value)}
+                className="bg-[#111827] border border-[#1f2937] rounded px-2 py-1 text-xs mono text-gray-200 [color-scheme:dark]"
+              />
+              <button
+                type="submit"
+                disabled={!draftFrom || !draftTo || draftFrom > draftTo}
+                className="px-3 py-1 rounded text-xs mono bg-green-500 text-black font-semibold disabled:opacity-40"
+              >
+                Apply
+              </button>
+            </form>
+          )}
         </div>
       </div>
 

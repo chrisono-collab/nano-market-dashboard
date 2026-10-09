@@ -1,0 +1,506 @@
+{
+  "_comment": "Master HaHa-productId -> USAT-sales-SKU-name mapping, shared across every machine's analysis. Keyed by productId (a global catalog ID -- the same can of Coke has the same productId everywhere), so a mapping solved once for any machine applies to all of them. Every salesName/salesNames value must exist verbatim in usat-transaction-log.xlsx's Product column -- verify before adding, a typo silently produces a zero-sales row instead of an error. Read/written by scripts/analyze_removal_candidates.py. displayName (optional) is the warehouse inventory sheet's name for the product line, shown in the dashboard; falls back to salesName, then HaHa's name.",
+  "direct": {
+    "A2024102100001": {
+      "salesName": "Honey Buns",
+      "note": "Duchess Honey Buns -- only \"Honey Buns\" entry in sales",
+      "displayName": "Honey Buns"
+    },
+    "A2024090900003": {
+      "salesName": "Fairlife",
+      "note": "generic in sales, only one Fairlife SKU"
+    },
+    "A2024061900023": {
+      "salesName": "Coke Zero 16.9oz",
+      "displayName": "Coke Zero"
+    },
+    "A2024011600111": {
+      "salesName": "Snickers",
+      "displayName": "Snickers"
+    },
+    "A2024111100021": {
+      "salesName": "Twix",
+      "displayName": "Twix"
+    },
+    "A2024011600052": {
+      "salesName": "Skittles Sour",
+      "displayName": "Skittles Sour"
+    },
+    "A2024101800036": {
+      "salesName": "Ritz Bits",
+      "note": "generic in sales, only one Ritz Bits SKU",
+      "displayName": "Ritz Bits"
+    },
+    "A2024012800016": {
+      "salesName": "Oreo Cookies",
+      "note": "distinct from \"Oreo Cakesters\" in sales"
+    },
+    "A2024020300003": {
+      "salesName": "Nutter Butter",
+      "displayName": "Nutter Butter"
+    },
+    "A2024032200004": {
+      "salesName": "Hershey's Cookies 'n Creme"
+    },
+    "A2025021100005": {
+      "salesName": "Monster Ultra 16oz",
+      "displayName": "Monster Ultra"
+    },
+    "A2024060100002": {
+      "salesName": "Smart Water 23.7oz",
+      "note": "generic in sales, only one Smart Water SKU",
+      "displayName": "Smart Water"
+    },
+    "A2025091100103": {
+      "salesName": "Factor Protein Shake",
+      "note": "generic in sales, only one Factor Shake SKU",
+      "displayName": "Factor Protein Shake"
+    },
+    "A2025120200048": {
+      "salesName": "Factor Bar - Honey Nut Crunch"
+    },
+    "A2025031000025": {
+      "salesName": "Gatorade Frost - Glacier Freeze"
+    },
+    "A2024091400007": {
+      "salesName": "M&M Peanuts",
+      "displayName": "M&M Peanuts"
+    },
+    "A2025102300085": {
+      "salesName": "BUM Energy - Dr. Bum"
+    },
+    "A2025120900046": {
+      "salesName": "Factor Bar - Chocolate",
+      "note": "only Factor Bar flavor in sales; HaHa's name is generic"
+    },
+    "A2025011000004": {
+      "salesName": "Reese's Peanut Butter Cups",
+      "note": "confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Reese's Peanut Butter Cups"
+    },
+    "A2024052000002": {
+      "salesName": "Monster Original 16oz",
+      "note": "\"Monster green 16oz\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Monster Original"
+    },
+    "A2025032900032": {
+      "salesName": "Hillshire - Genoa Salame",
+      "note": "\"Hillshire Snacking Genoa Salame\" -- confirmed by Chris against warehouse inventory sheet"
+    },
+    "A2025071300006": {
+      "salesName": "Alani Protein Shake Variety",
+      "note": "confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Alani Protein"
+    },
+    "A2025082100014": {
+      "salesName": "Dots Pretzel",
+      "note": "\"Dot's Homestlye Pretzels\" -- confirmed by Chris against warehouse inventory sheet"
+    },
+    "A2025091200090": {
+      "salesName": "Smart sweets sweet fish",
+      "note": "confirmed by Chris against warehouse inventory sheet"
+    },
+    "A2025020400033": {
+      "salesName": "Gold Peak Sweet Tea",
+      "note": "\"Gold Peak Tea\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Gold Peak Sweet Tea"
+    },
+    "A2025010800049": {
+      "salesName": "Poptart Variety",
+      "note": "\"PopTarts\" -- confirmed by Chris; only PopTart SKU in sales, no flavor ambiguity despite \"Variety\" in the name"
+    },
+    "A2024052300033": {
+      "salesName": "Chomps Beef Stick",
+      "note": "\"Chomps Original\" -- confirmed by Chris; unqualified name = plain/original, distinct from the separate \"Chomps Jalapeño Beef Stick\" SKU"
+    },
+    "A2024032200033": {
+      "salesName": "Famous Amos",
+      "note": "\"Famous Amos 56g\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Famous Amos"
+    },
+    "A2024011600017": {
+      "salesName": "Skittles",
+      "note": "\"skittles 2.17oz\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Skittles"
+    },
+    "A2025120800074": {
+      "salesName": "Chex mix",
+      "note": "\"Chex mix spicy dill\" -- confirmed by Chris; generic in sales, only one Chex Mix SKU"
+    },
+    "A2025112300094": {
+      "salesName": "California Pizza Kitchen BBQ Chicken",
+      "note": "\"California Pizza Kitchen BBQ Chicken 14.7 oz\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "California Pizza Kitchen BBQ Chicken"
+    },
+    "A2025090200071": {
+      "salesName": "DiGiorno Ultimate Pepperoni Rising Crust",
+      "note": "\"Digiorno pepperoni piza\" -- Chris's sheet says \"DiGiorno Pepperoni Personal Size\", but only one DiGiorno-pepperoni SKU exists in sales at all -- moderate confidence, worth a second look if this machine's numbers ever look off",
+      "displayName": "DiGiorno Ultimate Pepperoni Rising Crust"
+    },
+    "A2026010500020": {
+      "salesName": "Fruit Riot Sour Grapes",
+      "note": "confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Fruit Riot Sour Grapes"
+    },
+    "A2024100500010": {
+      "salesName": "Hot Pocket Pepperoni Pizza 4.5",
+      "note": "\"Hot pocket pepporoni pizza\" -- confirmed by Chris (as generic \"Hot Pockets\"); matched to the flavor-specific SKU since HaHa's own name specifies pepperoni and sales has 3 distinct Hot Pocket flavors"
+    },
+    "A2025012800043": {
+      "salesName": "Marie Callenders - Chicken Pot Pie",
+      "note": "\"Marie callenders\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Marie Callender's Chicken Pot Pie"
+    },
+    "A2025072600035": {
+      "salesName": "Michael Angelo's - Chicken Parmigiana",
+      "note": "\"Michael Angelo's Chicken Parmigiana 10oz\" -- confirmed by Chris against warehouse inventory sheet"
+    },
+    "A2026021000006": {
+      "salesName": "Newman's Own Thin & Crispy Crust Pizza",
+      "note": "\"Newman's Own Thin & Crispy Crust Supreme Pizza\" -- confirmed by Chris against warehouse inventory sheet",
+      "displayName": "Newman's Own Thin & Crispy Crust Pizza"
+    },
+    "A2025092700077": {
+      "salesName": "KitKat",
+      "displayName": "KitKat",
+      "note": "\"KitKat - 1.5oz\" candy bar, confirmed by Chris 2026-10-09; distinct from the frozen \"KitKat Pint\""
+    },
+    "A2025110600079": {
+      "salesName": "Takis 3oz",
+      "note": "\"Takis fuego 3.25oz\" -- confirmed by Chris 2026-10-09"
+    },
+    "A2024092600014": {
+      "salesName": "Gatorade Frost - Glacier Cherry",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025030200022": {
+      "salesName": "Sour Patch Kids 3.6 oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025051300027": {
+      "salesName": "Sour Patch Kids 3.6 oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024052600005": {
+      "salesName": "Snapple - Kiwi Strawberry",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025090200065": {
+      "salesName": "Trader Joe’s Chicken Burrito Bowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2026011500043": {
+      "salesName": "Beef & Queso Bowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025090800068": {
+      "salesName": "100 Grand Ice Cream",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025082900018": {
+      "salesName": "Twix Ice Cream Bar",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024091800018": {
+      "salesName": "Nongshim Noodle Hot & Spicy",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024102200017": {
+      "salesName": "A&W Root Beer 12oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024100100009": {
+      "salesName": "Big Red 12oz",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2024090300004": {
+      "salesName": "7UP",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025082100076": {
+      "salesName": "7UP - Zero Sugar",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025111400039": {
+      "salesName": "Trader Joe's Cuban Style Citrus GarlicBowl",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025053000045": {
+      "salesName": "Arizona Sour Fruit Snack",
+      "note": "confirmed by Chris 2026-10-09"
+    },
+    "A2025020500005": {
+      "salesName": "Tyson Spicy Chicken Sandwich",
+      "note": "confirmed by Chris 2026-10-09"
+    }
+  },
+  "aggregate": {
+    "A2024052600033": {
+      "salesNames": [
+        "Trolli",
+        "Trolli Very Berry"
+      ],
+      "note": "sales has BOTH -- can't tell which"
+    },
+    "A2024110100029": {
+      "salesNames": [
+        "Red Bull 12oz",
+        "Red Bull 12oz Blue",
+        "Red Bull 12oz Pink",
+        "Red Bull 12oz Sugar Free",
+        "Red Bull Zero Sugar 12oz"
+      ],
+      "note": "sales has 5 distinct Red Bull SKUs"
+    },
+    "A2024081400014": {
+      "salesNames": [
+        "Red Bull 12oz",
+        "Red Bull 12oz Blue",
+        "Red Bull 12oz Pink",
+        "Red Bull 12oz Sugar Free",
+        "Red Bull Zero Sugar 12oz"
+      ],
+      "note": "same Red Bull ambiguity"
+    },
+    "A2024052300008": {
+      "salesNames": [
+        "Celsius Variety"
+      ],
+      "displayName": "Celsius"
+    },
+    "A2025041300019": {
+      "salesNames": [
+        "La Colombe - Vanilla",
+        "La Colombe - Oatmilk Vanilla"
+      ],
+      "note": "sales has 2 La Colombe Vanilla-ish SKUs"
+    },
+    "A2024122300009": {
+      "salesNames": [
+        "Powerade Zero Variety"
+      ],
+      "displayName": "Powerade Zero"
+    },
+    "A2025051500046": {
+      "salesNames": [
+        "Powerade Zero Variety"
+      ],
+      "note": "same Powerade aggregation",
+      "displayName": "Powerade Zero"
+    },
+    "A2025013100028": {
+      "salesNames": [
+        "Bai Variety"
+      ],
+      "displayName": "Bai"
+    },
+    "A2024090900004": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "displayName": "Legendary"
+    },
+    "A2024090900007": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "displayName": "Legendary"
+    },
+    "A2024090900005": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "displayName": "Legendary"
+    },
+    "A2025032100022": {
+      "salesNames": [
+        "Bloom Variety"
+      ]
+    },
+    "A2025060500020": {
+      "salesNames": [
+        "Alani Variety"
+      ],
+      "displayName": "Alani"
+    },
+    "A2025010900012": {
+      "salesNames": [
+        "Uptime Variety"
+      ],
+      "displayName": "Uptime"
+    },
+    "A2025091200039": {
+      "salesNames": [
+        "Gatorade Frost - Riptide Rush"
+      ],
+      "note": "different sub-line?"
+    },
+    "A2025041600022": {
+      "salesNames": [
+        "Nature's Bakery Variety"
+      ]
+    },
+    "A2025102500073": {
+      "salesNames": [
+        "Nature's Bakery Variety"
+      ]
+    },
+    "A2026031900069": {
+      "salesNames": [
+        "Misfits Variety"
+      ],
+      "displayName": "Misfits"
+    },
+    "A2025071500002": {
+      "salesNames": [
+        "Veggie Straws Variety"
+      ],
+      "note": "ambiguous naming itself",
+      "displayName": "Veggie Straws"
+    },
+    "A2024011600015": {
+      "salesNames": [
+        "Reese's Crispy Crunch King Size",
+        "Reese's Peanut Butter Cups",
+        "Reese’s Oreo"
+      ],
+      "note": "sales has 3 distinct Reese's products, none clearly \"42g\" generic"
+    },
+    "A2025020300006": {
+      "salesNames": [
+        "Airheads Xtremes Bites",
+        "Airheads Xtremes Bites 3oz"
+      ],
+      "note": "neither says \"Rainbow\""
+    },
+    "A2025051500047": {
+      "salesNames": [
+        "Powerade Zero Variety"
+      ],
+      "note": "\"Powerade Zero Mixed Berry 591ml\" -- confirmed by Chris; joins existing Powerade Zero Variety pattern",
+      "displayName": "Powerade Zero"
+    },
+    "A2024090900006": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "note": "\"Legendary...Brown Sugar Cinnamon 2.2oz\" -- confirmed by Chris; joins existing Legendary Variety pattern",
+      "displayName": "Legendary"
+    },
+    "A2024052500025": {
+      "salesNames": [
+        "Alani Variety"
+      ],
+      "note": "\"Alani Cosmic Stardust12oz\" -- confirmed by Chris; joins existing Alani Variety pattern",
+      "displayName": "Alani"
+    },
+    "A2025040800053": {
+      "salesNames": [
+        "David Bar Variety"
+      ],
+      "note": "\"David Cookie Dough Bar\" -- confirmed by Chris"
+    },
+    "A2025121500136": {
+      "salesNames": [
+        "Bloom Pop Variety"
+      ],
+      "note": "\"Bloom Probiotic Soda Strawberry Cream 12oz\" -- confirmed by Chris; distinct from the energy-drink \"Bloom Variety\" line",
+      "displayName": "Bloom Pop"
+    },
+    "A2024121600001": {
+      "salesNames": [
+        "Welch's Variety"
+      ],
+      "note": "\"Welch's Fruit Snacks Mixed Fruit\" -- Chris confirmed this as a direct match, but the only Welch's SKU in sales is the aggregate \"Welch's Variety\" line (no flavor-specific SKU exists) -- reclassified here as aggregate rather than direct for that reason; treat the resulting velocity as an upper-bound estimate like the other Variety-line products"
+    },
+    "A2025050100014": {
+      "salesNames": [
+        "Celsius Variety"
+      ],
+      "note": "\"Celsius\" -- variety estimate, confirmed by Chris 2026-10-09",
+      "displayName": "Celsius"
+    },
+    "A2025121600001": {
+      "salesNames": [
+        "Bloom Pop Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2024111900005": {
+      "salesNames": [
+        "Alani Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025061400024": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025102200113": {
+      "salesNames": [
+        "Legendary Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025031000020": {
+      "salesNames": [
+        "Barebell Protein Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025082100082": {
+      "salesNames": [
+        "Barebell Protein Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025041400047": {
+      "salesNames": [
+        "Baked Lay Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025020300028": {
+      "salesNames": [
+        "Perfect Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025040900025": {
+      "salesNames": [
+        "Perfect Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025041000025": {
+      "salesNames": [
+        "David Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025053100050": {
+      "salesNames": [
+        "Wilde Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    },
+    "A2025040500021": {
+      "salesNames": [
+        "Kind Bar Variety"
+      ],
+      "note": "variety estimate, confirmed by Chris 2026-10-09"
+    }
+  },
+  "discontinued": {
+    "A2025081600032": {
+      "productName": "Gorgie mango burst",
+      "note": "confirmed discontinued by Chris against warehouse inventory sheet -- excluded from analysis entirely"
+    },
+    "A2024092300019": {
+      "productName": "Rx Bar peanut butter chocolate",
+      "note": "confirmed discontinued by Chris against warehouse inventory sheet -- excluded from analysis entirely"
+    }
+  }
+}

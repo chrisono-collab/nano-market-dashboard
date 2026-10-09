@@ -285,10 +285,12 @@ export async function getMachineTransactions(
     const day = txnDay(row?.transactionTime)
     if (day && (day < range.from || day > range.to)) return
 
+    // VendSoft gives each line item its own transactionId; items from one
+    // purchase share a transactionTime, so group on that instead.
     const id =
-      row?.transactionId != null
-        ? String(row.transactionId)
-        : `${row?.transactionTime ?? 't'}-${i}`
+      row?.transactionTime != null
+        ? String(row.transactionTime)
+        : `${row?.transactionId ?? 't'}-${i}`
     const price = Number(row?.price ?? row?.amount ?? 0) || 0
     const qty = Number(row?.quantity ?? 1) || 1
 
@@ -319,6 +321,12 @@ export async function getMachineTransactions(
   )
 }
 
+/** Unfiltered sales line-items for one machine (VendSoft's full rolling ~30-day window). */
+export async function getRawMachineSales(machineCode: string): Promise<any[]> {
+  const data = await vsGet(`/machines/${machineCode}/sales`)
+  return Array.isArray(data) ? data : []
+}
+
 export async function getMachineSales(
   machineCode: string,
   range: DateRange
@@ -336,7 +344,8 @@ export async function getMachineSales(
     // transactionTime here, client-side. (Ranges older than the window
     // simply have no data to return.)
     // Revenue = Σ(price × quantity); a "transaction" = a distinct
-    // transactionId (one card swipe can buy several line-items).
+    // transactionTime (each line item has its own transactionId, but items
+    // from one purchase share a timestamp).
     if (Array.isArray(data)) {
       let amount = 0
       const txnIds = new Set<unknown>()
@@ -347,7 +356,7 @@ export async function getMachineSales(
         const price = Number(row?.price ?? row?.amount ?? 0)
         const qty = Number(row?.quantity ?? 1)
         if (!Number.isNaN(price)) amount += price * (Number.isNaN(qty) ? 1 : qty)
-        txnIds.add(row?.transactionId ?? row?.transactionTime ?? Symbol())
+        txnIds.add(row?.transactionTime ?? row?.transactionId ?? Symbol())
       }
       return { amount, transactions: txnIds.size }
     }

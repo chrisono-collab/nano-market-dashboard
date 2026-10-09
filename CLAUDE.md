@@ -48,7 +48,7 @@ middleware.ts                     # runs updateSession on all routes except stat
 ### Key data quirks (important)
 - **The sales endpoint ignores `from`/`to` query params.** It always returns a rolling **~30-day window** of raw vend line-items. So date filtering is done **client-side** by parsing each row's `transactionTime` ("YYYYMMDDHHMMSS"). **Consequence: date ranges older than ~30 days return no data.**
 - A sales record is one **line item**: `{ transactionId, transactionTime, productName, price, quantity, creditCard, ... }`.
-- **Revenue** = Σ(`price` × `quantity`). **Transaction count** = distinct `transactionId` (one card swipe can buy several line-items).
+- **Revenue** = Σ(`price` × `quantity`). **Transaction count** = distinct `transactionTime` per machine. Despite the name, `transactionId` is unique per line item, so items from one purchase share a timestamp, not an id.
 - Machine list lives at `/machines`; `machineCode` values are small integers ("2", "3", ...).
 
 ## Dashboard features
@@ -80,6 +80,18 @@ Local: `.env.local` (gitignored). Production: Vercel → Settings → Environmen
 | `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase anon / publishable key (RLS-gated, browser-safe) |
 | `ANTHROPIC_API_KEY` | no | Reserved for the planned Claude Q&A feature |
+| `HAHA_APP_KEY` / `HAHA_APP_SECRET` | for /machines | HaHa Open Platform API (planograms, restock logs) |
+| `HAHA_API_BASE_URL` | no | Defaults to `https://thor-openapi.hahavending.com` |
+| `SUPABASE_SERVICE_ROLE_KEY` | for sync | Server-only; cron route + bootstrap scripts write history with it |
+| `CRON_SECRET` | for sync | Vercel Cron sends it as a Bearer token to `/api/cron/daily-sync` |
+
+## HaHa velocity reports (/machines)
+
+- `/machines` lists HaHa's live machine list; `/machines/[marketId]` shows a sortable, stockout-corrected sales velocity table for that machine's current planogram. Ported from the standalone `haha-dashboard` prototype.
+- Sales history lives in Supabase `sales_line_items` (schema: `supabase/migrations/0001_haha_velocity.sql`): a USAT export backfill (`scripts/bootstrap_usat_sales.py`) plus daily VendSoft snapshots. USAT wins for any day it covers. VendSoft sales rows carry `telemetryId` = HaHa marketId; USAT `[n]` labels equal VendSoft `machineCode`.
+- HaHa restock events live in `restock_events` (bootstrapped from the prototype's cache by `scripts/bootstrap_restock_events.py`), with per-machine watermarks in `restock_scan_state`.
+- `/api/cron/daily-sync` (Vercel Cron, 11:00 UTC, production only) re-snapshots VendSoft's last 7 completed days (VendSoft uploads lag) and incrementally scans HaHa restock logs within a time budget. Middleware lets `/api/cron/*` through; the route checks `CRON_SECRET`.
+- Velocity math is `lib/velocity.ts` (`computeStockDays`); product naming is `data/product-name-mapping.json` (`displayName` = warehouse sheet name).
 
 ## Conventions / notes
 
