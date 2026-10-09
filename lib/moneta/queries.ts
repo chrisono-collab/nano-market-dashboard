@@ -7,6 +7,9 @@ export const MONETA_PREFIX = 'moneta:'
 
 interface LineRow {
   cart_key: string
+  cart_total: number
+  cart_unit_cost: number | null
+  cart_profit: number | null
   machine_name: string
   product_name: string
   quantity: number
@@ -15,12 +18,23 @@ interface LineRow {
   sold_at: string
 }
 
+/**
+ * Moneta totals include sales tax; VendSoft prices do not. Cost + profit is
+ * the pre-tax cart amount (checked against every cart: 8.25% on taxed items,
+ * none on Smart Water), so scale each line by net/total to match VendSoft.
+ */
+function netAmount(l: LineRow): number {
+  const total = Number(l.cart_total)
+  if (!total || l.cart_profit == null) return Number(l.line_amount)
+  return (Number(l.line_amount) * (Number(l.cart_unit_cost ?? 0) + Number(l.cart_profit))) / total
+}
+
 async function fetchLines(sb: SupabaseClient, range: DateRange, machineName?: string): Promise<LineRow[]> {
   const rows: LineRow[] = []
   for (let from = 0; ; from += 1000) {
     let q = sb
       .from('moneta_transactions')
-      .select('cart_key, machine_name, product_name, quantity, line_amount, payment_method, sold_at')
+      .select('cart_key, cart_total, cart_unit_cost, cart_profit, machine_name, product_name, quantity, line_amount, payment_method, sold_at')
       .gte('sale_day', range.from)
       .lte('sale_day', range.to)
     if (machineName) q = q.eq('machine_name', machineName)
@@ -42,7 +56,7 @@ export async function getMonetaSummaries(sb: SupabaseClient, range: DateRange): 
   for (const m of ((state.data?.machines as { name: string }[] | null) ?? [])) totals.set(m.name, { amount: 0, carts: new Set() })
   for (const l of lines) {
     const t = totals.get(l.machine_name) ?? { amount: 0, carts: new Set<string>() }
-    t.amount += Number(l.line_amount)
+    t.amount += netAmount(l)
     t.carts.add(l.cart_key)
     totals.set(l.machine_name, t)
   }
@@ -86,8 +100,9 @@ export async function getMonetaTransactions(sb: SupabaseClient, machineCode: str
       carts.set(l.cart_key, t)
     }
     const qty = Number(l.quantity)
-    t.items.push({ name: l.product_name, quantity: qty, price: qty ? Number(l.line_amount) / qty : 0 })
-    t.amount = Math.round((t.amount + Number(l.line_amount)) * 100) / 100
+    const amount = netAmount(l)
+    t.items.push({ name: l.product_name, quantity: qty, price: qty ? amount / qty : 0 })
+    t.amount = Math.round((t.amount + amount) * 100) / 100
   }
   return Array.from(carts.values())
 }
