@@ -1,0 +1,21 @@
+{
+  "_comment": "Street addresses by HaHa marketId, shown on /machines and the velocity reports. Overrides HaHa's marketLocation, which is out of date for some machines. Machines missing here fall back to HaHa's value.",
+  "B94280": "415 Colorado St, Austin, TX",
+  "B93457": "415 Colorado St, Austin, TX",
+  "B111895": "2518 Leon St, Austin, TX",
+  "B165384": "1221 S Congress Ave Ste 400, Austin, TX 78704",
+  "B85241": "11950 Jollyville Rd, Austin, TX",
+  "B147066": "510 W 26th St, Austin, TX 78705",
+  "B115579": "510 W 26th St, Austin, TX 78705",
+  "B170944": "2704 Rio Grande St, Austin, TX 78705",
+  "B72114": "1301 Barbara Jordan Blvd, Austin, TX",
+  "B71948": "1301 Barbara Jordan Blvd, Austin, TX",
+  "B101300": "3000 Gracie Kiltz Ln, Austin, TX",
+  "B112101": "3000 Gracie Kiltz Ln, Austin, TX",
+  "B147389": "348 Main St, Leander, TX 78641",
+  "B147418": "10101 Metropolitan Dr, Austin, TX",
+  "B112102": "10101 Metropolitan Dr, Austin, TX",
+  "B133764": "5100 Bolm Rd, Austin, TX",
+  "B115573": "5100 Bolm Rd, Austin, TX",
+  "B85158": "1715 S. Capital of Texas Hwy, Austin, TX"
+}
