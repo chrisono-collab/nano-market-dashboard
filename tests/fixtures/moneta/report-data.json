@@ -1,0 +1,110 @@
+[
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000001",
+    "Machine": "The Maris",
+    "Products": " Bloom Energy",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "4.87",
+    "Profit": "4.50",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/9/2026 2:48:31 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000002",
+    "Machine": "The Maris",
+    "Products": " Alani Pink Slush",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "4.87",
+    "Profit": "4.50",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/9/2026 1:36:52 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000003",
+    "Machine": "The Maris",
+    "Products": " Nestle Toll House Ice Cream Pint",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "2.88",
+    "TotalAmount": "10.28",
+    "Profit": "6.62",
+    "UserInformation": "Test Customer test@example.com",
+    "RegistrationDateTime": "10/9/2026 12:35:58 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000004",
+    "Machine": "The Maris",
+    "Products": " Snickers Ice Cream Bars<br> Snickers Crunchy Peanut Butter Ice Cream Bars",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "8.66",
+    "Profit": "8.00",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/8/2026 10:32:37 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000005",
+    "Machine": "The Maris",
+    "Products": " California Pizza Kitchen BBQ Chicken<br> Trader Joe&apos;s Rolled Corn Tortilla Chips",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "24.36",
+    "Profit": "22.50",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/8/2026 9:30:00 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000006",
+    "Machine": "The Maris",
+    "Products": " Kinder Bueno / Nutella Ice Cream Cones<br> La Colombe Pumpkin Spice Latte<br> Coke Zero",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "2.00",
+    "TotalAmount": "12.72",
+    "Profit": "9.75",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/8/2026 10:11:53 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000007",
+    "Machine": "The Maris",
+    "Products": " Sprite<br> Sprite",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "7.04",
+    "Profit": "6.50",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/6/2026 1:58:15 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000008",
+    "Machine": "The Maris",
+    "Products": " Snickers Ice Cream Bars<br> Snickers Ice Cream Bars",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "8.66",
+    "Profit": "8.00",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/5/2026 10:58:53 PM"
+  },
+  {
+    "TransactionId": "00000000-0000-0000-0000-000000000009",
+    "Machine": "Gables At The Terrace",
+    "Products": " Lunchables<br> Celsius Wild Berry<br> Takis",
+    "PaymentMethods": " Online Credit Card",
+    "PromotionAmount": "0.00",
+    "UnitCost": "0.00",
+    "TotalAmount": "13.8",
+    "Profit": "12.75",
+    "UserInformation": "Unregistered User",
+    "RegistrationDateTime": "10/8/2026 1:15:25 PM"
+  }
+]

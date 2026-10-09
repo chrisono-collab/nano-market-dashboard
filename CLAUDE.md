@@ -83,7 +83,9 @@ Local: `.env.local` (gitignored). Production: Vercel → Settings → Environmen
 | `HAHA_APP_KEY` / `HAHA_APP_SECRET` | for /machines | HaHa Open Platform API (planograms, restock logs) |
 | `HAHA_API_BASE_URL` | no | Defaults to `https://thor-openapi.hahavending.com` |
 | `SUPABASE_SERVICE_ROLE_KEY` | for sync | Server-only; cron route + bootstrap scripts write history with it |
-| `CRON_SECRET` | for sync | Vercel Cron sends it as a Bearer token to `/api/cron/daily-sync` |
+| `CRON_SECRET` | for sync | Bearer token for `/api/cron/daily-sync` and `/api/cron/moneta-sync` (Vercel Cron + GitHub Actions) |
+| `MONETA_EMAIL` / `MONETA_PASSWORD` | for Moneta | Read-only Moneta portal staff user (Sales Reports + Special Reports only) |
+| `MONETA_BASE_URL` | no | Defaults to `https://www.monetamarket.com/NanoMarketATXWeb/` |
 
 ## HaHa velocity reports (/machines)
 
@@ -92,6 +94,16 @@ Local: `.env.local` (gitignored). Production: Vercel → Settings → Environmen
 - HaHa restock events live in `restock_events` (bootstrapped from the prototype's cache by `scripts/bootstrap_restock_events.py`), with per-machine watermarks in `restock_scan_state`.
 - `/api/cron/daily-sync` (Vercel Cron, 11:00 UTC, production only) re-snapshots VendSoft's last 7 completed days (VendSoft uploads lag) and incrementally scans HaHa restock logs within a time budget. Middleware lets `/api/cron/*` through; the route checks `CRON_SECRET`.
 - Velocity math is `lib/velocity.ts` (`computeStockDays`); product naming is `data/product-name-mapping.json` (`displayName` = warehouse sheet name).
+
+## Moneta Market (micro-market kiosks)
+
+- No public API: `lib/moneta/client.ts` calls the operator portal's internal endpoints (found with `scripts/moneta-discover.ts`, captures in gitignored `.moneta-discovery/`). Login is `POST Login/Login` JSON `{Email, Password}` (no CSRF/captcha) setting cookie `MonetaMarketDashboard`; machines from `GET Machines/GetMachinesDailySales` (`Id` GUID, `CustomId` name); carts from `POST Reports/GetReportData` with `ReportType: "ShoppingCart"`, machine GUIDs and `"MM-DD-YYYY hh:mm AM"` dates. Whole range in one JSON response (text/plain), no pagination. Read-only: never call anything else.
+- A row is a **cart**: products joined by `<br>` (repeats = quantity), names HTML-encoded, money fields are cart totals (TotalAmount includes tax), timestamps are Central wall-clock. `UserInformation` holds customer names/emails and is stripped in the parser; never store it.
+- No per-item price: multi-product carts are split by median single-product price (`moneta_ref_prices` view), flagged `amount_allocated`.
+- `cart_key` = hash(machine name, sold_at, total), shared by API rows and portal Excel/CSV exports (which lack TransactionId and join products with spaces). `moneta_apply_sync()` replaces whole carts atomically, prunes voided carts in an API window, and never lets uploads overwrite API carts.
+- Tables (`supabase/migrations/0002_moneta.sql`): `moneta_transactions`, `moneta_sync_state` (single row `default`), `moneta_product_map` (Moneta name -> our sales name; blank = unmapped).
+- Sync: `/api/cron/moneta-sync` re-pulls from `last_cursor - 2 days` through today. Hourly via `.github/workflows/moneta-sync.yml` (repo secrets `DASHBOARD_URL`, `CRON_SECRET`) because Vercel Hobby only allows daily crons; `vercel.json` adds a daily backup. Errors/zero-sales days go to `moneta_sync_state` and the dashboard banner (also shown if no success in 3h).
+- UI: source filter + "M" badge on `/`, drawer via `machineCode` prefix `moneta:`; `/moneta/products` (mapping), `/moneta/upload` (export fallback). Backfill: `scripts/moneta-backfill.ts <from> [to] [--dry-run]`. Tests: `npm test` (fixtures in `tests/fixtures/moneta`, sanitized).
 
 ## Conventions / notes
 

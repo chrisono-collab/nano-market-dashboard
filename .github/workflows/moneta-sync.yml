@@ -1,0 +1,21 @@
+# Hourly Moneta sales sync. Vercel's Hobby plan only allows daily crons, so
+# GitHub calls the protected route instead (vercel.json keeps a daily backup).
+# Needs repo secrets DASHBOARD_URL (e.g. https://your-app.vercel.app) and CRON_SECRET.
+name: moneta-sync
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger /api/cron/moneta-sync
+        env:
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body -sS --max-time 150 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${DASHBOARD_URL%/}/api/cron/moneta-sync"

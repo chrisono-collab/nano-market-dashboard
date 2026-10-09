@@ -11,6 +11,14 @@ interface LocationSummary {
   machineType: string
   totalAmount: number
   totalTransactions: number
+  source?: 'vendsoft' | 'moneta'
+}
+
+type SourceFilter = 'all' | 'vendsoft' | 'moneta'
+
+interface MonetaStatus {
+  alert: string | null
+  unmappedCount: number
 }
 
 interface TransactionItem {
@@ -55,6 +63,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'amount' | 'transactions' | 'name'>('amount')
+  const [source, setSource] = useState<SourceFilter>('all')
+  const [monetaError, setMonetaError] = useState<string | null>(null)
+  const [monetaStatus, setMonetaStatus] = useState<MonetaStatus | null>(null)
+
+  useEffect(() => {
+    fetch('/api/moneta/status')
+      .then((r) => r.json())
+      .then(setMonetaStatus)
+      .catch(() => setMonetaStatus({ alert: 'Could not read Moneta sync status.', unmappedCount: 0 }))
+  }, [])
 
   // Transaction detail drawer
   const [selected, setSelected] = useState<LocationSummary | null>(null)
@@ -98,35 +116,45 @@ export default function Dashboard() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
-    try {
-      const res = await fetch(`/api/vendsoft?${query}`)
+    setMonetaError(null)
+    const load = async (url: string) => {
+      const res = await fetch(url)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
-      setData(json.data)
-      setRange(json.range)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
+      return json as { data: LocationSummary[]; range: { from: string; to: string } }
     }
+    // One source failing should not hide the other.
+    const [vs, mo] = await Promise.allSettled([load(`/api/vendsoft?${query}`), load(`/api/moneta/sales?${query}`)])
+    const rows: LocationSummary[] = []
+    if (vs.status === 'fulfilled') {
+      rows.push(...vs.value.data.map((d) => ({ ...d, source: 'vendsoft' as const })))
+      setRange(vs.value.range)
+    } else setError(vs.reason?.message ?? 'Failed to fetch VendSoft')
+    if (mo.status === 'fulfilled') {
+      rows.push(...mo.value.data.map((d) => ({ ...d, source: 'moneta' as const })))
+      if (vs.status !== 'fulfilled') setRange(mo.value.range)
+    } else setMonetaError(mo.reason?.message ?? 'Failed to fetch Moneta')
+    setData(rows)
+    setLoading(false)
   }, [query])
 
   useEffect(() => {
     fetchData()
   }, [fetchData])
 
-  const totalRevenue = data.reduce((s, d) => s + d.totalAmount, 0)
-  const totalTx = data.reduce((s, d) => s + d.totalTransactions, 0)
+  const visible = source === 'all' ? data : data.filter((d) => d.source === source)
+  const totalRevenue = visible.reduce((s, d) => s + d.totalAmount, 0)
+  const totalTx = visible.reduce((s, d) => s + d.totalTransactions, 0)
   const avgTx = totalTx > 0 ? totalRevenue / totalTx : 0
 
   // How many machines share each location — used to only badge Snack/Soda
   // where a location actually has more than one machine to tell apart.
-  const machinesPerLocation = data.reduce<Record<string, number>>((m, d) => {
+  const machinesPerLocation = visible.reduce<Record<string, number>>((m, d) => {
     m[d.locationName] = (m[d.locationName] ?? 0) + 1
     return m
   }, {})
 
-  const sorted = [...data].sort((a, b) => {
+  const sorted = [...visible].sort((a, b) => {
     if (sortBy === 'amount') return b.totalAmount - a.totalAmount
     if (sortBy === 'transactions') return b.totalTransactions - a.totalTransactions
     return a.locationName.localeCompare(b.locationName)
@@ -141,9 +169,17 @@ export default function Dashboard() {
         <div>
           <p className="mono text-xs tracking-[0.2em] text-green-400 uppercase mb-1">Nano Market ATX</p>
           <h1 className="text-2xl font-semibold text-white">Sales Dashboard</h1>
-          <Link href="/machines" className="mono text-xs text-green-400 hover:text-green-300">
-            Product velocity reports by machine →
-          </Link>
+          <div className="flex flex-wrap gap-x-4">
+            <Link href="/machines" className="mono text-xs text-green-400 hover:text-green-300">
+              Product velocity reports by machine →
+            </Link>
+            <Link href="/moneta/products" className="mono text-xs text-green-400 hover:text-green-300">
+              Moneta products{monetaStatus?.unmappedCount ? ` (${monetaStatus.unmappedCount} unmapped)` : ''} →
+            </Link>
+            <Link href="/moneta/upload" className="mono text-xs text-gray-500 hover:text-green-300">
+              Upload Moneta export
+            </Link>
+          </div>
           {range && (
             <p className="text-sm text-gray-500 mt-1 mono">
               {range.from === range.to ? range.from : `${range.from} → ${range.to}`}
@@ -224,8 +260,36 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Moneta sync health */}
+      {monetaStatus?.alert && (
+        <div className="mb-6 bg-amber-900/20 border border-amber-500/30 rounded-lg p-4 mono text-sm text-amber-300">
+          ⚠ {monetaStatus.alert}{' '}
+          <Link href="/moneta/upload" className="underline hover:text-amber-200">
+            Upload an export
+          </Link>{' '}
+          if this persists.
+        </div>
+      )}
+
+      {/* Source filter */}
+      <div className="flex gap-2 mb-6">
+        {(['all', 'vendsoft', 'moneta'] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setSource(s)}
+            className={`px-3 py-1 rounded text-xs mono transition-all ${
+              source === s
+                ? 'bg-green-500/10 text-green-400 border border-green-500/40'
+                : 'text-gray-500 border border-[#1f2937] hover:text-gray-300'
+            }`}
+          >
+            {s === 'all' ? 'All sources' : s === 'vendsoft' ? 'VendSoft' : 'Moneta'}
+          </button>
+        ))}
+      </div>
+
       {/* Summary cards */}
-      {data.length > 0 && (
+      {visible.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-4">
             <p className="mono text-xs text-gray-500 uppercase tracking-widest mb-2">Total Revenue</p>
@@ -253,21 +317,26 @@ export default function Dashboard() {
           ⚠ {error}
         </div>
       )}
+      {monetaError && (
+        <div className="mb-6 bg-red-900/20 border border-red-500/30 rounded-lg p-4 mono text-sm text-red-400">
+          ⚠ Moneta: {monetaError}
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center gap-3 py-16 justify-center text-gray-500 mono text-sm">
           <span className="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-          Pulling live data from VendSoft…
+          Pulling live data from VendSoft and Moneta…
         </div>
       )}
 
       {/* Table */}
-      {!loading && data.length > 0 && (
+      {!loading && visible.length > 0 && (
         <div className="bg-[#111827] border border-[#1f2937] rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f2937]">
             <p className="mono text-xs text-gray-500 uppercase tracking-widest">
-              {data.length} Locations
+              {visible.length} Locations
             </p>
             <div className="flex gap-2">
               {(['amount', 'transactions', 'name'] as const).map((s) => (
@@ -310,7 +379,7 @@ export default function Dashboard() {
                 const isSodaOnly = sharesLocation && type === 'soda'
                 return (
                   <tr
-                    key={loc.machineCode}
+                    key={`${loc.source}:${loc.machineCode}`}
                     onClick={() => openDetail(loc)}
                     className="border-b border-[#1f2937]/50 hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
@@ -320,6 +389,14 @@ export default function Dashboard() {
                         <div>
                           <p className="text-sm font-medium text-gray-100 flex items-center gap-2">
                             {loc.locationName}
+                            {loc.source === 'moneta' && (
+                              <span
+                                title="Moneta micro market"
+                                className="mono text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/30 rounded px-1 leading-tight"
+                              >
+                                M
+                              </span>
+                            )}
                             {isFreezer && (
                               <span
                                 title="Freezer"
@@ -376,7 +453,7 @@ export default function Dashboard() {
       )}
 
       {/* Empty */}
-      {!loading && !error && data.length === 0 && (
+      {!loading && !error && visible.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <p className="mono text-gray-600 text-sm">No sales data for this period.</p>
           <p className="mono text-gray-700 text-xs mt-1">Try a different date range.</p>
@@ -384,7 +461,7 @@ export default function Dashboard() {
       )}
 
       <p className="mt-8 mono text-xs text-gray-700 text-center">
-        Nano Market ATX · Smart Vending ATX LLC · Data via VendSoft
+        Nano Market ATX · Smart Vending ATX LLC · Data via VendSoft and Moneta
       </p>
 
       {/* Transaction detail drawer */}

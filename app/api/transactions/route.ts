@@ -3,6 +3,7 @@ import { getMachineTransactions } from '@/lib/vendsoft'
 import { getDateRange, Preset } from '@/lib/dates'
 import { getHistoryTransactions, splitRange } from '@/lib/salesHistory'
 import { createClient } from '@/lib/supabase/server'
+import { MONETA_PREFIX, getMonetaTransactions } from '@/lib/moneta/queries'
 
 // Individual transactions for one machine, newest first.
 //   GET /api/transactions?machine=7&preset=today   (or &from=YYYY-MM-DD&to=YYYY-MM-DD)
@@ -18,6 +19,17 @@ export async function GET(req: NextRequest) {
   const to = searchParams.get('to') ?? undefined
   const range = getDateRange(preset, from, to)
   const { history, live } = splitRange(range)
+
+  if (machine.startsWith(MONETA_PREFIX)) {
+    try {
+      const transactions = await getMonetaTransactions(await createClient(), machine, range)
+      transactions.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      return NextResponse.json({ transactions, range })
+    } catch (err: any) {
+      console.error('Moneta transactions error:', err)
+      return NextResponse.json({ error: err.message }, { status: 500 })
+    }
+  }
 
   try {
     const [liveTxns, historyTxns] = await Promise.all([

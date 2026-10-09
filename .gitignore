@@ -10,3 +10,6 @@ tsconfig.tsbuildinfo
 .DS_Store
 recovery-codes.txt
 __pycache__/
+
+# Moneta discovery captures (HARs contain session cookies and live sales data)
+.moneta-discovery/
