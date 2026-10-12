@@ -112,6 +112,27 @@ async function setState(admin: SupabaseClient, patch: Record<string, unknown>) {
   if (error) console.error('[moneta-sync] could not write sync state:', error.message)
 }
 
+// Cadence: every 30 min while awake, every 3 h overnight (Central time).
+// Schedulers call every 30 min; this decides whether a call should run.
+const WAKE_START_HOUR = 6
+const WAKE_END_HOUR = 23
+const DAY_INTERVAL_MS = 25 * 60_000 // a bit under 30 min to absorb scheduler jitter
+const NIGHT_INTERVAL_MS = (3 * 60 - 10) * 60_000
+
+function centralHour(d = new Date()): number {
+  return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hourCycle: 'h23' }).format(d))
+}
+
+/** Reason to skip this scheduled call, or null to run it. */
+export async function scheduleSkipReason(admin: SupabaseClient): Promise<string | null> {
+  const { data } = await admin.from('moneta_sync_state').select('last_success_at').eq('id', 'default').maybeSingle()
+  const last = data?.last_success_at ? Date.parse(data.last_success_at as string) : 0
+  const h = centralHour()
+  const awake = h >= WAKE_START_HOUR && h < WAKE_END_HOUR
+  const interval = awake ? DAY_INTERVAL_MS : NIGHT_INTERVAL_MS
+  return Date.now() - last < interval ? `synced ${Math.round((Date.now() - last) / 60_000)} min ago (${awake ? 'day' : 'night'} cadence)` : null
+}
+
 /** The scheduled job: from (last synced day - overlap) through today. */
 export async function runScheduledSync(admin: SupabaseClient) {
   const now = new Date().toISOString()

@@ -1,10 +1,11 @@
-# Hourly Moneta sales sync. Vercel's Hobby plan only allows daily crons, so
-# GitHub calls the protected route instead (vercel.json keeps a daily backup).
+# Backup trigger for the Moneta sales sync. Supabase pg_cron is the primary
+# scheduler (GitHub's free schedules fire every 4-7 h, not as written); the
+# route itself enforces the 30 min day / 3 h night cadence.
 # Needs repo secrets DASHBOARD_URL (e.g. https://your-app.vercel.app) and CRON_SECRET.
 name: moneta-sync
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 jobs:
   sync:
