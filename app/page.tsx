@@ -19,7 +19,11 @@ type SourceFilter = 'all' | 'vendsoft' | 'moneta'
 interface MonetaStatus {
   alert: string | null
   unmappedCount: number
+  lastSuccessAt?: string | null
 }
+
+// Older than this, opening the dashboard triggers a Moneta sync.
+const MONETA_STALE_MS = 30 * 60_000
 
 interface TransactionItem {
   name: string
@@ -66,12 +70,24 @@ export default function Dashboard() {
   const [source, setSource] = useState<SourceFilter>('all')
   const [monetaError, setMonetaError] = useState<string | null>(null)
   const [monetaStatus, setMonetaStatus] = useState<MonetaStatus | null>(null)
+  const [monetaSyncing, setMonetaSyncing] = useState(false)
+  const [monetaVersion, setMonetaVersion] = useState(0)
 
   useEffect(() => {
-    fetch('/api/moneta/status')
-      .then((r) => r.json())
-      .then(setMonetaStatus)
-      .catch(() => setMonetaStatus({ alert: 'Could not read Moneta sync status.', unmappedCount: 0 }))
+    const loadStatus = () =>
+      fetch('/api/moneta/status')
+        .then((r) => r.json() as Promise<MonetaStatus>)
+        .catch(() => ({ alert: 'Could not read Moneta sync status.', unmappedCount: 0 }) as MonetaStatus)
+    loadStatus().then(async (status) => {
+      const last = status.lastSuccessAt ? Date.parse(status.lastSuccessAt) : 0
+      if (Date.now() - last < MONETA_STALE_MS) return setMonetaStatus(status)
+      // Stale: sync now, then reload status and sales.
+      setMonetaSyncing(true)
+      await fetch('/api/moneta/refresh', { method: 'POST' }).catch(() => null)
+      setMonetaStatus(await loadStatus())
+      setMonetaSyncing(false)
+      setMonetaVersion((v) => v + 1)
+    })
   }, [])
 
   // Transaction detail drawer
@@ -140,7 +156,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [fetchData, monetaVersion])
 
   const visible = source === 'all' ? data : data.filter((d) => d.source === source)
   const totalRevenue = visible.reduce((s, d) => s + d.totalAmount, 0)
@@ -261,7 +277,10 @@ export default function Dashboard() {
       </div>
 
       {/* Moneta sync health */}
-      {monetaStatus?.alert && (
+      {monetaSyncing && (
+        <p className="mb-4 mono text-xs text-gray-500">Refreshing Moneta sales…</p>
+      )}
+      {!monetaSyncing && monetaStatus?.alert && (
         <div className="mb-6 bg-amber-900/20 border border-amber-500/30 rounded-lg p-4 mono text-sm text-amber-300">
           ⚠ {monetaStatus.alert}{' '}
           <Link href="/moneta/upload" className="underline hover:text-amber-200">

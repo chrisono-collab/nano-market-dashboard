@@ -115,8 +115,9 @@ export interface MonetaStatus {
   unmappedCount: number
 }
 
-// The hourly job should never leave this much of a gap.
-const STALE_HOURS = 3
+// GitHub's hourly schedule really fires every 4-7 hours, and opening the
+// dashboard syncs on demand, so only a much longer gap is worth flagging.
+const STALE_HOURS = 8
 
 export async function getMonetaStatus(sb: SupabaseClient): Promise<MonetaStatus> {
   const [{ data: s, error }, { count }] = await Promise.all([
