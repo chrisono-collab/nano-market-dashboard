@@ -7,7 +7,7 @@ export const maxDuration = 120
 
 // Called every 30 min by Supabase pg_cron (supabase/moneta-schedule.sql), with
 // GitHub Actions and a daily Vercel Cron as backups, all sending
-// `Authorization: Bearer $CRON_SECRET`. Runs every 30 min 6am-11pm Central and
+// `Authorization: Bearer $CRON_SECRET`. Runs every 30 min 6am-midnight Central and
 // every 3 h overnight; extra calls are skipped. Failures are recorded in
 // moneta_sync_state and shown as a dashboard banner.
 export async function GET(request: NextRequest) {

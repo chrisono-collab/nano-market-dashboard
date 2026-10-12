@@ -115,7 +115,7 @@ async function setState(admin: SupabaseClient, patch: Record<string, unknown>) {
 // Cadence: every 30 min while awake, every 3 h overnight (Central time).
 // Schedulers call every 30 min; this decides whether a call should run.
 const WAKE_START_HOUR = 6
-const WAKE_END_HOUR = 23
+const WAKE_END_HOUR = 24 // midnight
 const DAY_INTERVAL_MS = 25 * 60_000 // a bit under 30 min to absorb scheduler jitter
 const NIGHT_INTERVAL_MS = (3 * 60 - 10) * 60_000
 

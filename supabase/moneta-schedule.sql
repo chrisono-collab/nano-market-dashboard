@@ -1,6 +1,6 @@
 -- Reliable schedule for the Moneta sync: Supabase calls the dashboard's
 -- sync route every 30 minutes. The route itself skips calls so it runs every
--- 30 min from 6am to 11pm Central and every 3 hours overnight.
+-- 30 min from 6am to midnight Central and every 3 hours overnight.
 --
 -- Before running: replace PASTE_CRON_SECRET_HERE with the CRON_SECRET value
 -- (same as in Vercel / .env.local). Safe to re-run.
