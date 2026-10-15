@@ -40,6 +40,7 @@ export class MonetaClient {
   private readonly minGapMs: number
   private cookies: Map<string, string>
   private lastRequestAt = 0
+  private lastSetCookies: string[] = []
 
   constructor(opts: { email?: string; password?: string; baseUrl?: string; minGapMs?: number } = {}) {
     this.email = opts.email ?? process.env.MONETA_EMAIL ?? ''
@@ -56,16 +57,22 @@ export class MonetaClient {
     return Array.from(this.cookies, ([k, v]) => `${k}=${v}`).join('; ')
   }
 
-  private storeCookies(res: Response) {
-    for (const c of res.headers.getSetCookie()) {
+  /** Returns the cookie names set by this response (for diagnostics). */
+  private storeCookies(res: Response): string[] {
+    const parsed = res.headers.getSetCookie().map((c) => {
       const [pair, ...attrs] = c.split(';')
       const eq = pair.indexOf('=')
-      const name = pair.slice(0, eq).trim()
       const value = pair.slice(eq + 1).trim()
-      const expired = attrs.some((a) => /expires=thu, 01 jan 1970/i.test(a.trim())) || !value
-      if (expired) this.cookies.delete(name)
-      else this.cookies.set(name, value)
-    }
+      return {
+        name: pair.slice(0, eq).trim(),
+        value,
+        expired: attrs.some((a) => /expires=thu, 01 jan 1970/i.test(a.trim())) || !value,
+      }
+    })
+    // Apply deletions first so a response that clears and re-sets a cookie keeps the new value.
+    for (const c of parsed) if (c.expired) this.cookies.delete(c.name)
+    for (const c of parsed) if (!c.expired) this.cookies.set(c.name, c.value)
+    return parsed.map((c) => `${c.name}${c.expired ? '(cleared)' : ''}`)
   }
 
   private async throttle() {
@@ -90,7 +97,7 @@ export class MonetaClient {
       body: init.json !== undefined ? JSON.stringify(init.json) : undefined,
       signal: AbortSignal.timeout(60_000),
     })
-    this.storeCookies(res)
+    this.lastSetCookies = this.storeCookies(res)
     const loc = res.headers.get('location') ?? ''
     if (res.status === 401 || res.status === 403 || ((res.status === 301 || res.status === 302) && /login/i.test(loc))) {
       throw new SessionExpired()
@@ -99,12 +106,21 @@ export class MonetaClient {
   }
 
   async login(): Promise<void> {
-    this.cookies.clear()
-    const res = await this.withRetry(() => this.raw('Login/Login', { method: 'POST', json: { Email: this.email, Password: this.password } }), 'login')
-    const body = await res.text()
-    if (!res.ok || !this.cookies.has('MonetaMarketDashboard')) {
-      // Never echo credentials; the body is the portal's own message.
-      throw new MonetaLoginError(`Moneta login failed (HTTP ${res.status})${body ? `: ${body.slice(0, 200)}` : ''}`)
+    // The portal answers "Success" but now and then without the auth cookie;
+    // a second attempt a few seconds later gets it.
+    for (let attempt = 1; ; attempt++) {
+      this.cookies.clear()
+      const res = await this.withRetry(() => this.raw('Login/Login', { method: 'POST', json: { Email: this.email, Password: this.password } }), 'login')
+      const body = await res.text()
+      if (res.ok && this.cookies.has('MonetaMarketDashboard')) return
+      if (attempt >= 3 || !res.ok || !/success/i.test(body)) {
+        // Never echo credentials; the body is the portal's own message.
+        throw new MonetaLoginError(
+          `Moneta login failed (HTTP ${res.status})${body ? `: ${body.slice(0, 200)}` : ''}; cookies set: ${this.lastSetCookies.join(', ') || 'none'}`,
+        )
+      }
+      console.warn(`[moneta] login said Success without auth cookie (got: ${this.lastSetCookies.join(', ') || 'none'}); retrying`)
+      await sleep(3000 * attempt)
     }
   }
 
