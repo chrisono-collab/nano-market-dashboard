@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import type { Preset } from '@/lib/dates'
 import { isHiddenRetired } from '@/lib/retired'
@@ -130,18 +130,27 @@ export default function Dashboard() {
     return () => window.removeEventListener('keydown', onKey)
   }, [selected, closeDetail])
 
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    setMonetaError(null)
-    const load = async (url: string) => {
-      const res = await fetch(url)
+  const loadSales = useCallback(
+    async (url: string) => {
+      const res = await fetch(`${url}?${query}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Failed to fetch')
       return json as { data: LocationSummary[]; range: { from: string; to: string } }
-    }
+    },
+    [query]
+  )
+
+  // Bumped whenever the silent Moneta refresh lands, so a slower full load
+  // that started earlier doesn't overwrite those fresher rows.
+  const monetaApplied = useRef(0)
+
+  const fetchData = useCallback(async () => {
+    const appliedAtStart = monetaApplied.current
+    setLoading(true)
+    setError(null)
+    setMonetaError(null)
     // One source failing should not hide the other.
-    const [vs, mo] = await Promise.allSettled([load(`/api/vendsoft?${query}`), load(`/api/moneta/sales?${query}`)])
+    const [vs, mo] = await Promise.allSettled([loadSales('/api/vendsoft'), loadSales('/api/moneta/sales')])
     const rows: LocationSummary[] = []
     if (vs.status === 'fulfilled') {
       rows.push(...vs.value.data.map((d) => ({ ...d, source: 'vendsoft' as const })))
@@ -152,13 +161,31 @@ export default function Dashboard() {
       if (vs.status !== 'fulfilled') setRange(mo.value.range)
     } else setMonetaError(mo.reason?.message ?? 'Failed to fetch Moneta')
     const rangeFrom = vs.status === 'fulfilled' ? vs.value.range.from : mo.status === 'fulfilled' ? mo.value.range.from : undefined
-    setData(rows.filter((r) => !isHiddenRetired(r, rangeFrom)))
+    const next = rows.filter((r) => !isHiddenRetired(r, rangeFrom))
+    if (monetaApplied.current === appliedAtStart) setData(next)
+    else setData((prev) => [...next.filter((r) => r.source !== 'moneta'), ...prev.filter((r) => r.source === 'moneta')])
     setLoading(false)
-  }, [query])
+  }, [loadSales])
 
   useEffect(() => {
     fetchData()
-  }, [fetchData, monetaVersion])
+  }, [fetchData])
+
+  // After a background Moneta sync, swap in fresh Moneta rows only: no spinner,
+  // no VendSoft re-fetch, so the page doesn't visibly load twice.
+  useEffect(() => {
+    if (monetaVersion === 0) return
+    loadSales('/api/moneta/sales')
+      .then((mo) => {
+        const fresh = mo.data
+          .map((d) => ({ ...d, source: 'moneta' as const }))
+          .filter((r) => !isHiddenRetired(r, mo.range.from))
+        monetaApplied.current++
+        setData((prev) => [...prev.filter((r) => r.source !== 'moneta'), ...fresh])
+        setMonetaError(null)
+      })
+      .catch((e) => setMonetaError(e.message ?? 'Failed to fetch Moneta'))
+  }, [monetaVersion]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const visible = source === 'all' ? data : data.filter((d) => d.source === source)
   const totalRevenue = visible.reduce((s, d) => s + d.totalAmount, 0)
