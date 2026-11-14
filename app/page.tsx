@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import type { Preset } from '@/lib/dates'
+import { isHiddenRetired } from '@/lib/retired'
 
 interface LocationSummary {
   machineCode: string
@@ -150,7 +151,8 @@ export default function Dashboard() {
       rows.push(...mo.value.data.map((d) => ({ ...d, source: 'moneta' as const })))
       if (vs.status !== 'fulfilled') setRange(mo.value.range)
     } else setMonetaError(mo.reason?.message ?? 'Failed to fetch Moneta')
-    setData(rows)
+    const rangeFrom = vs.status === 'fulfilled' ? vs.value.range.from : mo.status === 'fulfilled' ? mo.value.range.from : undefined
+    setData(rows.filter((r) => !isHiddenRetired(r, rangeFrom)))
     setLoading(false)
   }, [query])
 
