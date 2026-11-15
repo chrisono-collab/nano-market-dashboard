@@ -118,6 +118,9 @@ export interface MonetaStatus {
 // Overnight syncs run every 3 hours (pg_cron), and opening the
 // dashboard syncs on demand, so only a much longer gap is worth flagging.
 const STALE_HOURS = 4
+// Moneta's login fails now and then and the next run recovers, so a failed
+// attempt only raises the banner once the last success is this old.
+const FAILING_GRACE_MS = 60 * 60_000
 
 export async function getMonetaStatus(sb: SupabaseClient): Promise<MonetaStatus> {
   const [{ data: s, error }, { count }] = await Promise.all([
@@ -126,7 +129,9 @@ export async function getMonetaStatus(sb: SupabaseClient): Promise<MonetaStatus>
   ])
   if (error) throw new Error(error.message)
   const lastSuccess = s?.last_success_at ? Date.parse(s.last_success_at) : null
-  const failing = s?.last_error && (!lastSuccess || Date.parse(s.last_error_at) > lastSuccess)
+  const failing =
+    s?.last_error &&
+    (!lastSuccess || (Date.parse(s.last_error_at) > lastSuccess && Date.now() - lastSuccess > FAILING_GRACE_MS))
   let alert: string | null = null
   if (failing) alert = `Moneta sync is failing: ${s!.last_error}`
   else if (!lastSuccess) alert = 'Moneta sales have not synced yet.'

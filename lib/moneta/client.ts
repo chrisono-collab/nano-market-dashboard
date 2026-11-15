@@ -107,20 +107,21 @@ export class MonetaClient {
 
   async login(): Promise<void> {
     // The portal answers "Success" but now and then without the auth cookie;
-    // a second attempt a few seconds later gets it.
+    // a later attempt gets it. Back off well apart (5s, 10s, 20s): it also
+    // rate-limits logins (429) when they come in quick succession.
     for (let attempt = 1; ; attempt++) {
       this.cookies.clear()
       const res = await this.withRetry(() => this.raw('Login/Login', { method: 'POST', json: { Email: this.email, Password: this.password } }), 'login')
       const body = await res.text()
       if (res.ok && this.cookies.has('MonetaMarketDashboard')) return
-      if (attempt >= 3 || !res.ok || !/success/i.test(body)) {
+      if (attempt >= 4 || !res.ok || !/success/i.test(body)) {
         // Never echo credentials; the body is the portal's own message.
         throw new MonetaLoginError(
           `Moneta login failed (HTTP ${res.status})${body ? `: ${body.slice(0, 200)}` : ''}; cookies set: ${this.lastSetCookies.join(', ') || 'none'}`,
         )
       }
       console.warn(`[moneta] login said Success without auth cookie (got: ${this.lastSetCookies.join(', ') || 'none'}); retrying`)
-      await sleep(3000 * attempt)
+      await sleep(5000 * 2 ** (attempt - 1))
     }
   }
 
